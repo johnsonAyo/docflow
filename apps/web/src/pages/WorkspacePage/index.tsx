@@ -1,6 +1,12 @@
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, Play, Plus } from "lucide-react";
 import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
-import { WorkflowOverview, WorkflowBuilder, PlaceholderPage, AddFieldModal } from "@/components/WorkspaceComponents";
+import {
+  AddFieldModal,
+  DemoMode,
+  WorkflowBuilder,
+  WorkflowOverview,
+  WorkspaceSectionView,
+} from "@/components/WorkspaceComponents";
 import { workspaceLabels, navItems } from "./labels";
 
 export function WorkspacePage() {
@@ -9,19 +15,36 @@ export function WorkspacePage() {
     workflowView,
     activeStage,
     fields,
+    workflowDraft,
+    savedWorkflows,
+    configPreview,
+    validationErrors,
+    saveState,
+    uploadState,
+    demoState,
+    isSavingWorkflow,
+    isUploadingDocument,
+    isRunningDemo,
     isAddFieldOpen,
     setActiveStage,
     setWorkflowView,
     setIsAddFieldOpen,
+    updateWorkflowDraft,
     handleSectionClick,
+    createDraftWorkflow,
+    openWorkflow,
+    publishWorkflow,
+    handleUploadDocument,
+    handleRunDemo,
     handleAddField,
   } = useWorkflowBuilder();
 
 
 
   const isWorkflowBuilder = activeSection === "Workflows" && workflowView === "builder";
+  const isDemoMode = activeSection === "Workflows" && workflowView === "demo";
   const appTitle = activeSection === "Workflows"
-    ? isWorkflowBuilder ? "Contract intake" : "Workflows"
+    ? isWorkflowBuilder ? "Contract intake" : isDemoMode ? "Demo mode" : "Workflows"
     : activeSection;
 
   return (
@@ -63,25 +86,32 @@ export function WorkspacePage() {
           </div>
           <div className="app-topbar-actions">
             {activeSection === "Workflows" && workflowView === "overview" ? (
-              <button
-                className="app-primary-action"
-                type="button"
-                onClick={() => {
-                  setWorkflowView("builder");
-                  setActiveStage("Document");
-                }}
-              >
-                <Plus size={16} aria-hidden="true" />
-                {workspaceLabels.topbar.actions.newWorkflow}
-              </button>
+              <>
+                <button
+                  className="app-secondary-action"
+                  type="button"
+                  onClick={() => setWorkflowView("demo")}
+                >
+                  <Play size={16} aria-hidden="true" />
+                  {workspaceLabels.topbar.actions.startDemo}
+                </button>
+                <button
+                  className="app-primary-action"
+                  type="button"
+                  onClick={() => createDraftWorkflow()}
+                >
+                  <Plus size={16} aria-hidden="true" />
+                  {workspaceLabels.topbar.actions.newWorkflow}
+                </button>
+              </>
             ) : null}
             {isWorkflowBuilder ? (
               <>
                 <button className="app-secondary-action" type="button">
                   {workspaceLabels.topbar.actions.previewRun}
                 </button>
-                <button className="app-primary-action" type="button">
-                  {workspaceLabels.topbar.actions.publishWorkflow}
+                <button className="app-primary-action" type="button" onClick={publishWorkflow} disabled={isSavingWorkflow}>
+                  {isSavingWorkflow ? "Publishing..." : workspaceLabels.topbar.actions.publishWorkflow}
                   <ArrowRight size={16} aria-hidden="true" />
                 </button>
               </>
@@ -91,14 +121,12 @@ export function WorkspacePage() {
 
         {activeSection === "Workflows" && workflowView === "overview" ? (
           <WorkflowOverview
-            onCreateWorkflow={() => {
-              setWorkflowView("builder");
-              setActiveStage("Document");
+            onCreateWorkflow={(name, type) => {
+              createDraftWorkflow(name, type);
             }}
-            onOpenWorkflow={() => {
-              setWorkflowView("builder");
-              setActiveStage("Fields");
-            }}
+            onOpenWorkflow={openWorkflow}
+            onStartDemo={() => setWorkflowView("demo")}
+            savedWorkflows={savedWorkflows}
           />
         ) : null}
 
@@ -106,12 +134,36 @@ export function WorkspacePage() {
           <WorkflowBuilder
             activeStage={activeStage}
             fields={fields}
+            workflowDraft={workflowDraft}
+            configPreview={configPreview}
+            validationErrors={validationErrors}
+            saveState={saveState}
             onAddField={() => setIsAddFieldOpen(true)}
             onChangeStage={setActiveStage}
+            onWorkflowDraftChange={updateWorkflowDraft}
           />
         ) : null}
 
-        {activeSection !== "Workflows" ? <PlaceholderPage title={activeSection} /> : null}
+        {isDemoMode ? (
+          <DemoMode
+            onOpenReviewQueue={() => {
+              handleSectionClick("Review queue");
+            }}
+            onRunDemo={handleRunDemo}
+            demoState={demoState}
+            isRunningDemo={isRunningDemo}
+          />
+        ) : null}
+
+        {activeSection !== "Workflows" ? (
+          <WorkspaceSectionView
+            title={activeSection}
+            savedWorkflows={savedWorkflows}
+            uploadState={uploadState}
+            isUploadingDocument={isUploadingDocument}
+            onUploadDocument={handleUploadDocument}
+          />
+        ) : null}
       </section>
 
       {isAddFieldOpen ? (
