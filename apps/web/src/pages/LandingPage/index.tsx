@@ -1,4 +1,5 @@
 import { ArrowRight, Check, FileText, SearchCheck, PlugZap, FileSearch, Layers3, Database, Waypoints } from "lucide-react";
+import { motion, Variants } from "framer-motion";
 import { SiteFooter, ProductFrame } from "@/components/LandingComponents";
 import { FieldRow } from "@/types";
 import { landingLabels, workflowSteps, extractedFields, integrations } from "./labels";
@@ -6,6 +7,23 @@ import { landingLabels, workflowSteps, extractedFields, integrations } from "./l
 function statusClass(status: FieldRow["status"]) {
   return landingLabels.statusClasses[status] || "is-ready";
 }
+
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 80, damping: 20, mass: 1 } 
+  }
+};
+
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12, delayChildren: 0.1 }
+  }
+};
 
 export function LandingPage() {
   return (
@@ -27,12 +45,19 @@ export function LandingPage() {
         </a>
       </header>
 
-      <section className="hero" id="top" aria-labelledby="hero-title">
-        <div className="hero-scene" aria-hidden="true">
+      <motion.section 
+        className="hero" 
+        id="top" 
+        aria-labelledby="hero-title"
+        initial="hidden"
+        animate="visible"
+        variants={staggerContainer}
+      >
+        <motion.div className="hero-scene" aria-hidden="true" variants={fadeInUp}>
           <ProductFrame />
-        </div>
+        </motion.div>
 
-        <div className="hero-content">
+        <motion.div className="hero-content" variants={fadeInUp}>
           <p className="eyebrow">{landingLabels.hero.eyebrow}</p>
           <h1 id="hero-title">{landingLabels.hero.title}</h1>
           <p className="hero-copy">{landingLabels.hero.copy}</p>
@@ -61,10 +86,17 @@ export function LandingPage() {
               </span>
             ))}
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
-      <section className="section intro-section" aria-labelledby="intro-title">
+      <motion.section 
+        className="section intro-section" 
+        aria-labelledby="intro-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div className="section-kicker">
           <span>{landingLabels.intro.kicker}</span>
         </div>
@@ -78,9 +110,17 @@ export function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="section workflow-section" id="workflow" aria-labelledby="workflow-title">
+      <motion.section 
+        className="section workflow-section" 
+        id="workflow" 
+        aria-labelledby="workflow-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div className="section-heading">
           <p className="eyebrow">{landingLabels.workflow.eyebrow}</p>
           <h2 id="workflow-title">{landingLabels.workflow.title}</h2>
@@ -119,16 +159,24 @@ export function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="section proof-section" id="demo" aria-labelledby="demo-title">
+      <motion.section 
+        className="section proof-section" 
+        id="demo" 
+        aria-labelledby="demo-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div className="section-heading compact">
           <p className="eyebrow">{landingLabels.proof.eyebrow}</p>
           <h2 id="demo-title">{landingLabels.proof.title}</h2>
         </div>
 
         <div className="proof-grid">
-          <article className="proof-card">
+          <article className="proof-card main-feature bento-blue">
             <div className="proof-icon">
               <FileText size={22} aria-hidden="true" />
             </div>
@@ -141,7 +189,7 @@ export function LandingPage() {
             </ul>
           </article>
 
-          <article className="proof-card featured">
+          <article className="proof-card featured bento-dark">
             <div className="proof-icon">
               <SearchCheck size={22} aria-hidden="true" />
             </div>
@@ -154,9 +202,17 @@ export function LandingPage() {
             </ul>
           </article>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="section review-section" id="review" aria-labelledby="review-title">
+      <motion.section 
+        className="section review-section" 
+        id="review" 
+        aria-labelledby="review-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div className="review-copy">
           <p className="eyebrow">{landingLabels.review.eyebrow}</p>
           <h2 id="review-title">{landingLabels.review.title}</h2>
@@ -201,12 +257,16 @@ export function LandingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section
+      <motion.section
         className="section integration-section"
         id="integrations"
         aria-labelledby="integrations-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
       >
         <div className="section-heading">
           <p className="eyebrow">{landingLabels.integrations.eyebrow}</p>
@@ -215,23 +275,36 @@ export function LandingPage() {
         </div>
 
         <div className="integration-grid">
-          {integrations.map((integration) => (
-            <article className="integration-item" key={integration.name}>
-              <div>
-                <PlugZap size={19} aria-hidden="true" />
-                <h3>{integration.name}</h3>
-              </div>
-              <p>{integration.detail}</p>
-              <span data-variant={integration.badgeVariant}>{integration.status}</span>
-            </article>
-          ))}
-        </div>
-      </section>
+          {integrations.map((integration, index) => {
+            let bentoClass = "";
+            if (index === 0) bentoClass = "bento-span-2-col bento-dark";
+            else if (index === 1) bentoClass = "bento-blue";
+            else if (index === 2) bentoClass = "bento-span-2-row bento-yellow";
+            else if (index === 5) bentoClass = "bento-green";
+            else if (index === 6) bentoClass = "bento-span-2-col bento-blue";
 
-      <section
+            return (
+              <article className={`integration-item ${bentoClass}`} key={integration.name}>
+                <div>
+                  <PlugZap size={19} aria-hidden="true" />
+                  <h3>{integration.name}</h3>
+                </div>
+                <p>{integration.detail}</p>
+                <span data-variant={integration.badgeVariant}>{integration.status}</span>
+              </article>
+            );
+          })}
+        </div>
+      </motion.section>
+
+      <motion.section
         className="section architecture-section"
         id="architecture"
         aria-labelledby="architecture-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
       >
         <div className="architecture-panel">
           <div>
@@ -251,9 +324,16 @@ export function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="section usecase-section" aria-labelledby="usecase-title">
+      <motion.section 
+        className="section usecase-section" 
+        aria-labelledby="usecase-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div className="section-heading compact">
           <p className="eyebrow">{landingLabels.useCases.eyebrow}</p>
           <h2 id="usecase-title">{landingLabels.useCases.title}</h2>
@@ -263,9 +343,16 @@ export function LandingPage() {
             <span key={useCase}>{useCase}</span>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="final-section" aria-labelledby="final-title">
+      <motion.section 
+        className="final-section" 
+        aria-labelledby="final-title"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+      >
         <div>
           <p className="eyebrow">{landingLabels.final.eyebrow}</p>
           <h2 id="final-title">{landingLabels.final.title}</h2>
@@ -274,7 +361,7 @@ export function LandingPage() {
           {landingLabels.final.action}
           <ArrowRight size={18} aria-hidden="true" />
         </a>
-      </section>
+      </motion.section>
 
       <SiteFooter />
     </main>

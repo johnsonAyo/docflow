@@ -1,24 +1,24 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Caveat:wght@400;500;600;700&display=swap");
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 :root {
   /* Canvas & surfaces */
-  --canvas: oklch(0.972 0.006 82);
-  --paper: oklch(0.992 0.005 82);
+  --canvas: #FFFFFF;
+  --paper: #FAFAFA;
   --surface: oklch(0.998 0.004 82);
   --surface-soft: oklch(0.948 0.007 82);
   --stripe: oklch(0.960 0.007 82);
   /* alt section bg */
 
   /* Ink */
-  --ink: oklch(0.16 0.006 82);
-  --ink-secondary: oklch(0.30 0.006 82);
-  --muted: oklch(0.48 0.008 82);
-  --faint: oklch(0.68 0.007 82);
+  --ink: #111827;
+  --ink-secondary: #374151;
+  --muted: #6B7280;
+  --faint: #9CA3AF;
 
   /* Borders */
-  --line: rgba(23, 23, 23, 0.085);
-  --line-strong: rgba(23, 23, 23, 0.16);
+  --line: rgba(17, 24, 39, 0.1);
+  --line-strong: rgba(17, 24, 39, 0.2);
 
   /* Semantic colours */
   --blue-soft: oklch(0.928 0.035 235);
@@ -30,16 +30,18 @@
   --red-soft: oklch(0.925 0.035 28);
   --red-ink: oklch(0.43 0.08 28);
 
-  --charcoal: oklch(0.18 0.006 82);
+  --charcoal: #111827;
 
   /* Typography */
-  --font: "Inter", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --font: "DM Sans", "Inter", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "DM Sans", "Inter", sans-serif;
+  --font-accent: "Caveat", cursive;
   --mono: "SF Mono", "Geist Mono", Consolas, monospace;
 
-  /* Radius tokens */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
+  /* Radius tokens (Bento Box style) */
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-lg: 24px;
   --r-pill: 999px;
 
   color: var(--ink);
@@ -107,7 +109,11 @@ p {
 
 h1,
 h2,
-h3,
+h3 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
 strong {
   letter-spacing: -0.01em;
 }
@@ -121,7 +127,7 @@ strong {
   position: fixed;
   top: 16px;
   left: 50%;
-  z-index: 20;
+  z-index: 50;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 24px;
@@ -129,13 +135,15 @@ strong {
   width: min(1140px, calc(100% - 40px));
   min-height: 58px;
   padding: 0 8px 0 12px;
-  border: 1px solid oklch(0.2 0.005 82 / 0.09);
-  border-radius: var(--r-lg);
-  background: oklch(0.993 0.004 82 / 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 12px 40px rgba(23, 23, 23, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   transform: translateX(-50%);
 }
 
@@ -668,7 +676,16 @@ strong {
 .architecture-panel {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  background: rgba(255, 254, 250, 0.8);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+}
+
+.builder-step:hover,
+.proof-card:hover,
+.integration-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.05);
 }
 
 .builder-step {
@@ -1013,7 +1030,54 @@ strong {
 .integration-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-auto-flow: dense;
   gap: 12px;
+}
+
+/* ── Bento Box Utilities ───────────────────────────────────────────── */
+.bento-span-2-col {
+  grid-column: span 2;
+}
+
+.bento-span-3-col {
+  grid-column: span 3;
+}
+
+.bento-span-2-row {
+  grid-row: span 2;
+}
+
+.bento-dark {
+  background: var(--charcoal) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.bento-dark p,
+.bento-dark ul,
+.bento-dark li {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.bento-dark li::before {
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+.bento-dark span[data-variant] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #FFF !important;
+}
+
+.bento-blue {
+  background: var(--blue-soft) !important;
+  border-color: transparent !important;
+}
+
+.bento-yellow {
+  background: var(--yellow-soft) !important;
+  border-color: transparent !important;
+}
+
+.bento-green {
+  background: var(--green-soft) !important;
+  border-color: transparent !important;
 }
 
 .integration-item {
@@ -1220,6 +1284,15 @@ strong {
 
   .integration-grid {
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+  }
+
+  .bento-span-2-col,
+  .bento-span-3-col {
+    grid-column: span 2;
+  }
+  .bento-span-2-row {
+    grid-row: span 1;
   }
 
   .document-evidence {

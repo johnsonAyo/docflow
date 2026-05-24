@@ -1,6 +1,7 @@
-import requests
 import json
 import time
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -9,7 +10,7 @@ def print_res(res, name):
     print(f"Status: {res.status_code}")
     try:
         print(json.dumps(res.json(), indent=2))
-    except:
+    except Exception:
         print(res.text)
     print()
 
@@ -20,7 +21,7 @@ for _ in range(5):
         if res.status_code == 200:
             print("Server is up!")
             break
-    except:
+    except Exception:
         time.sleep(1)
 
 # Health
