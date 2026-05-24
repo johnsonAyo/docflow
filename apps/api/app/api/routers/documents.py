@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
 from app.core.exceptions import InvalidArtifactKeyError, MissingArtifactBodyError
 from app.core.rate_limit import rate_limit
 from app.domain.models import ArtifactResponse
-from app.infrastructure.document_store import DocumentStore, artifact_key, safe_object_key
+from app.infrastructure.document_store import (
+    DocumentStore,
+    artifact_key,
+    safe_object_key,
+)
 from app.infrastructure.repositories import ResourceStore, WorkflowDefinitionStore
 from app.services.document_processing import process_uploaded_document
 

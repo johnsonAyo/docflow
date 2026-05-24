@@ -9,7 +9,6 @@ from app.services.ocr_engine import (
     TesseractOCRProvider,
 )
 
-
 TEXT_EXTENSIONS = (".txt", ".text", ".md", ".csv")
 
 

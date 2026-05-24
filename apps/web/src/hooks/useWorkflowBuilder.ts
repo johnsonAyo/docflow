@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createWorkflow,
@@ -21,8 +21,6 @@ import {
   WorkflowDefinition,
   WorkflowPayload,
   WorkflowSaveState,
-  DocumentRun,
-  ExtractedRecord,
   ReviewState,
   WorkspaceItem,
 } from "@/types";
@@ -236,22 +234,19 @@ export function useWorkflowBuilder() {
   });
   const [isAddFieldOpen, setIsAddFieldOpen] = useState(false);
 
-  const configPreview = useMemo(
-    () => JSON.stringify(workflowConfig(workflowDraft, fields), null, 2),
-    [fields, workflowDraft],
-  );
-  const validationErrors = useMemo(
-    () => validateWorkflow(workflowDraft, fields),
-    [fields, workflowDraft],
-  );
 
-  const workspaceItems = useMemo<Record<Exclude<AppSection, "Workflows">, WorkspaceItem[]>>(() => {
+  const configPreview = JSON.stringify(workflowConfig(workflowDraft, fields), null, 2);
+
+  const validationErrors = validateWorkflow(workflowDraft, fields);
+
+  const workspaceItems: Record<Exclude<AppSection, "Workflows">, WorkspaceItem[]> = (() => {
     const runs = documentRuns.map((run) => ({
       title: run.document_name,
       meta: `${run.document_type} · ${workflowName(savedWorkflows, run.workflow_id)}`,
       status: displayStatus(run.status),
       detail: run.error || String((run.metadata.processing as Record<string, unknown> | undefined)?.message || "Document run is tracked."),
     }));
+
     const reviews = reviewStates.map((review) => {
       const run = documentRuns.find((item) => item.id === review.document_run_id);
       const issue = review.issues[0] || {};
@@ -262,6 +257,7 @@ export function useWorkflowBuilder() {
         detail: String(issue.message || `${review.issues.length} issue(s) recorded.`),
       };
     });
+
     const recordRows = records.map((record) => {
       const run = documentRuns.find((item) => item.id === record.document_run_id);
       return {
@@ -278,7 +274,7 @@ export function useWorkflowBuilder() {
       Records: recordRows,
       Integrations: [],
     };
-  }, [documentRuns, savedWorkflows, reviewStates, records]);
+  })();
 
   function updateWorkflowDraft(updates: Partial<WorkflowDraft>) {
     setWorkflowDraft((currentDraft) => ({
@@ -389,18 +385,18 @@ export function useWorkflowBuilder() {
       queryClient.invalidateQueries({ queryKey: ["documentRuns"] });
       queryClient.invalidateQueries({ queryKey: ["records"] });
       queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
-      
-      setUploadState({ 
-        status: "saved", 
-        message: `Successfully uploaded ${file.name}. It will be processed shortly.` 
+
+      setUploadState({
+        status: "saved",
+        message: `Successfully uploaded ${file.name}. It will be processed shortly.`
       });
       setToastMessage({ message: `Document ${file.name} uploaded successfully!`, type: "success" });
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : "Upload failed.";
-      setUploadState({ 
-        status: "error", 
-        message: errorMessage 
+      setUploadState({
+        status: "error",
+        message: errorMessage
       });
       setToastMessage({ message: errorMessage, type: "error" });
     }
@@ -409,7 +405,7 @@ export function useWorkflowBuilder() {
   function handleUploadDocument(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    
+
     const file = formData.get("file") as File | null;
     if (!file || file.size === 0) {
       setUploadState({ status: "error", message: "Please select a file to upload." });
@@ -417,7 +413,7 @@ export function useWorkflowBuilder() {
     }
 
     setUploadState({ status: "saving", message: "Uploading document..." });
-    
+
     uploadDocumentMutation.mutate(formData, {
       onSuccess: () => {
         event.currentTarget.reset();

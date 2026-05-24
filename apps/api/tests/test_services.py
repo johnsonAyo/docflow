@@ -1,9 +1,9 @@
+from app.services.document_processing import process_uploaded_document
 from app.services.workflow_service import (
     build_workflow_document,
     slugify,
     update_config,
 )
-from app.services.document_processing import process_uploaded_document
 
 
 def test_slugify():
