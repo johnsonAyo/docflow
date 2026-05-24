@@ -1,4 +1,11 @@
-import { DemoRunResponse, DocumentUploadResponse, WorkflowDefinition, WorkflowPayload } from "@/types";
+import {
+  DocumentRun,
+  DocumentUploadResponse,
+  ExtractedRecord,
+  ReviewState,
+  WorkflowDefinition,
+  WorkflowPayload,
+} from "@/types";
 
 export type HealthResponse = {
   ok: boolean;
@@ -9,6 +16,17 @@ export type HealthResponse = {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const API_V1_URL = `${API_URL}/api/v1`;
+
+function queryString(params: Record<string, string | undefined>): string {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+}
 
 async function parseJsonResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
   if (response.ok) {
@@ -78,10 +96,74 @@ export async function uploadDocument(formData: FormData): Promise<DocumentUpload
   return parseJsonResponse<DocumentUploadResponse>(response, "Could not upload document");
 }
 
-export async function runDemo(): Promise<DemoRunResponse> {
-  const response = await fetch(`${API_V1_URL}/demo/run`, {
-    method: "POST",
+export async function listDocumentRuns(workflowId?: string): Promise<DocumentRun[]> {
+  const response = await fetch(`${API_V1_URL}/document-runs${queryString({ workflow_id: workflowId })}`);
+  return parseJsonResponse<DocumentRun[]>(response, "Could not load document runs");
+}
+
+export async function listRecords(workflowId?: string): Promise<ExtractedRecord[]> {
+  const response = await fetch(`${API_V1_URL}/records${queryString({ workflow_id: workflowId })}`);
+  return parseJsonResponse<ExtractedRecord[]>(response, "Could not load records");
+}
+
+export async function listReviewStates(workflowId?: string): Promise<ReviewState[]> {
+  const response = await fetch(`${API_V1_URL}/review-states${queryString({ workflow_id: workflowId })}`);
+  return parseJsonResponse<ReviewState[]>(response, "Could not load review states");
+}
+
+export async function updateRecord(
+  recordId: string,
+  payload: Partial<Pick<ExtractedRecord, "status" | "fields" | "confidence" | "evidence_refs" | "metadata">>,
+): Promise<ExtractedRecord> {
+  const response = await fetch(`${API_V1_URL}/records/${recordId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
   });
 
-  return parseJsonResponse<DemoRunResponse>(response, "Could not run demo mode");
+  return parseJsonResponse<ExtractedRecord>(response, "Could not update record");
+}
+
+export async function updateReviewState(
+  reviewStateId: string,
+  payload: Partial<Pick<ReviewState, "status" | "issues" | "assigned_to" | "decisions">>,
+): Promise<ReviewState> {
+  const response = await fetch(`${API_V1_URL}/review-states/${reviewStateId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<ReviewState>(response, "Could not update review state");
+}
+
+export function recordsCsvUrl(workflowId?: string): string {
+  const url = new URL(`${API_V1_URL}/exports/records.csv`);
+  if (workflowId) {
+    url.searchParams.set("workflow_id", workflowId);
+  }
+  return url.toString();
+}
+
+export async function testWebhook(workflowId: string): Promise<Record<string, unknown>> {
+  const response = await fetch(`${API_V1_URL}/integrations/webhook-test`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      workflow_id: workflowId,
+      target: "docflow-webhook-test",
+      payload: {
+        source: "workspace",
+        simulation: true,
+      },
+    }),
+  });
+
+  return parseJsonResponse<Record<string, unknown>>(response, "Could not test webhook");
 }

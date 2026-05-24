@@ -37,11 +37,24 @@ export DOCFLOW_S3_ENDPOINT_URL=http://localhost:9000
 export DOCFLOW_S3_ACCESS_KEY_ID=minioadmin
 export DOCFLOW_S3_SECRET_ACCESS_KEY=minioadmin
 export DOCFLOW_DOCUMENT_BUCKET=docflow-documents
+
+export DOCFLOW_TESSERACT_COMMAND=tesseract
+export DOCFLOW_OLLAMA_BASE_URL=http://localhost:11434
+export DOCFLOW_OLLAMA_MODEL=llama3.1:8b
 ```
 
 MongoDB and MinIO are required runtime services. Tests can mock these
 boundaries, but the application does not use JSON or filesystem storage as a
 runtime fallback.
+
+OCR and extraction use a provider boundary:
+
+- text uploads are processed directly
+- PDFs and images use Tesseract with OpenCV preprocessing when system
+  dependencies are installed
+- extracted OCR text is sent to Ollama for structured field extraction
+- if Ollama is unavailable, the API falls back to the rule-based extractor and
+  records a review issue
 
 Local MongoDB and MinIO can be started with:
 
@@ -89,7 +102,6 @@ document-ocr-engine/
   data/
     uploads/      # local scratch space before object-store write, if needed
     processed/    # local scratch space during processing, if needed
-    demo/         # sample demo inputs
   docs/
     milestones.md
   CONTEXT.md

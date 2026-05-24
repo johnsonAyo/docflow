@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routers import documents, resources, workflows
+from app.api.routers import documents, integrations, resources, workflows
 from app.core.settings import AppSettings, load_settings
 from app.core.telemetry import TelemetryMiddleware, setup_telemetry
 from app.infrastructure.document_store import DocumentStore, create_document_store
@@ -80,6 +80,7 @@ app.add_middleware(
 app.include_router(workflows.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(resources.router, prefix="/api/v1")
+app.include_router(integrations.router, prefix="/api/v1")
 
 @app.get("/health")
 def health_check(request: Request) -> dict[str, object]:

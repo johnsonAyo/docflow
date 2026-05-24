@@ -51,6 +51,23 @@ Response:
 }
 ```
 
+## Document Uploads
+
+`POST /documents/uploads`
+
+Multipart form fields:
+
+- `workflow_id`
+- `document_type`
+- `file`
+
+Stores the original file through the configured document store and creates a
+document run. Text-like files are processed immediately into an OCR text
+artifact, extracted record, and review state. PDFs and images use the configured
+Tesseract OCR command with OpenCV preprocessing. Extracted text is sent to
+Ollama for structured extraction against the workflow schema. If OCR or Ollama
+is unavailable, the run remains reviewable with a machine-readable issue.
+
 ## Document Runs
 
 - `GET /document-runs?workflow_id={workflow_id}`
@@ -89,3 +106,15 @@ Statuses: `pending`, `sent`, `failed`.
 - `POST /action-history`
 
 Action history is append-only through the public API.
+
+## CSV Export
+
+`GET /exports/records.csv?workflow_id={workflow_id}&document_run_id={document_run_id}`
+
+Returns a CSV view of extracted record fields.
+
+## Webhook Simulation
+
+`POST /integrations/webhook-test`
+
+Creates a simulated successful webhook delivery log and action history entry.

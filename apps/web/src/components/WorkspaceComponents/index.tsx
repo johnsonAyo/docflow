@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Download, Play, Plus, Send, Upload, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, Download, Plus, Send, Upload, X } from "lucide-react";
 import { type FormEvent } from "react";
 import {
   AppField,
@@ -7,12 +7,10 @@ import {
   WorkflowSaveState,
   WorkflowStage,
   AppSection,
+  WorkspaceItem,
 } from "@/types";
 import {
-  demoModeLabels,
-  demoSteps,
   workspaceComponentsLabels,
-  publishedWorkflows,
   workflowStages,
   appRuns,
   workspaceSectionContent,
@@ -21,27 +19,22 @@ import {
 export function WorkflowOverview({
   onCreateWorkflow,
   onOpenWorkflow,
-  onStartDemo,
+  onRunWorkflow,
   savedWorkflows,
 }: {
   onCreateWorkflow: (name: string, documentType: string) => void;
   onOpenWorkflow: (workflowId?: string) => void;
-  onStartDemo: () => void;
+  onRunWorkflow: (workflowId: string) => void;
   savedWorkflows: WorkflowDefinition[];
 }) {
-  const workflowRows = savedWorkflows.length > 0
-    ? savedWorkflows.map((workflow) => ({
-      id: workflow.id,
-      name: workflow.name,
-      type: workflow.document_type,
-      status: workflow.status === "published" ? "Published" : "Draft",
-      documents: "API saved",
-      owner: "Workspace",
-    }))
-    : publishedWorkflows.map((workflow) => ({
-      ...workflow,
-      id: undefined,
-    }));
+  const workflowRows = savedWorkflows.map((workflow) => ({
+    id: workflow.id,
+    name: workflow.name,
+    type: workflow.document_type,
+    status: workflow.status === "published" ? "Published" : "Draft",
+    documents: "API saved",
+    owner: "Workspace",
+  }));
 
   return (
     <div className="workflow-home">
@@ -61,6 +54,12 @@ export function WorkflowOverview({
         </div>
 
         <div className="published-workflow-list">
+          {workflowRows.length === 0 ? (
+            <div className="empty-workflow-state">
+              <strong>No workflows saved yet</strong>
+              <p>Create and publish your first workflow, then upload your own documents in Runs.</p>
+            </div>
+          ) : null}
           {workflowRows.map((workflow) => (
             <article className="published-workflow-row" key={workflow.id ?? workflow.name}>
               <div>
@@ -69,13 +68,22 @@ export function WorkflowOverview({
               </div>
               <span data-status={workflow.status}>{workflow.status}</span>
               <b>{workflow.documents}</b>
-              <button
-                className="app-secondary-action compact"
-                type="button"
-                onClick={() => onOpenWorkflow(workflow.id)}
-              >
-                {workspaceComponentsLabels.overview.publishedWorkflows.actionEdit}
-              </button>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button
+                  className="app-secondary-action compact"
+                  type="button"
+                  onClick={() => onOpenWorkflow(workflow.id)}
+                >
+                  {workspaceComponentsLabels.overview.publishedWorkflows.actionEdit}
+                </button>
+                <button
+                  className="app-primary-action compact"
+                  type="button"
+                  onClick={() => onRunWorkflow(workflow.id!)}
+                >
+                  Run
+                </button>
+              </div>
             </article>
           ))}
         </div>
@@ -90,7 +98,7 @@ export function WorkflowOverview({
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             const name = String(formData.get("name") || "Contract intake");
-            const type = String(formData.get("type") || "Contract");
+            const type = "Contract";
             onCreateWorkflow(name, type);
           }}
         >
@@ -98,99 +106,11 @@ export function WorkflowOverview({
             {workspaceComponentsLabels.overview.createWorkflow.fields.name}
             <input name="name" type="text" defaultValue={workspaceComponentsLabels.overview.createWorkflow.fields.nameValue} required />
           </label>
-          <label>
-            {workspaceComponentsLabels.overview.createWorkflow.fields.type}
-            <select name="type" defaultValue={workspaceComponentsLabels.overview.createWorkflow.fields.typeOptions[2]}>
-              {workspaceComponentsLabels.overview.createWorkflow.fields.typeOptions.map((opt) => (
-                <option key={opt}>{opt}</option>
-              ))}
-            </select>
-          </label>
           <button className="app-primary-action" type="submit">
             <Plus size={16} aria-hidden="true" />
             {workspaceComponentsLabels.overview.createWorkflow.action}
           </button>
         </form>
-        <div className="demo-entry-card">
-          <p className="app-kicker">{workspaceComponentsLabels.overview.demo.kicker}</p>
-          <h3>{workspaceComponentsLabels.overview.demo.title}</h3>
-          <p>{workspaceComponentsLabels.overview.demo.description}</p>
-          <button className="app-secondary-action" type="button" onClick={onStartDemo}>
-            <Play size={15} aria-hidden="true" />
-            {workspaceComponentsLabels.overview.demo.action}
-          </button>
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-export function DemoMode({
-  onOpenReviewQueue,
-  onRunDemo,
-  demoState,
-  isRunningDemo,
-}: {
-  onOpenReviewQueue: () => void;
-  onRunDemo: () => void;
-  demoState: WorkflowSaveState;
-  isRunningDemo: boolean;
-}) {
-  return (
-    <div className="demo-mode-layout">
-      <section className="demo-mode-panel" aria-labelledby="demo-mode-title">
-        <div className="builder-title-row">
-          <div>
-            <p className="app-kicker">{demoModeLabels.kicker}</p>
-            <h2 id="demo-mode-title">{demoModeLabels.title}</h2>
-          </div>
-          <div className="inline-actions">
-            <button className="app-secondary-action compact" type="button" onClick={onOpenReviewQueue}>
-              {demoModeLabels.secondaryAction}
-            </button>
-            <button className="app-primary-action compact" type="button" onClick={onRunDemo} disabled={isRunningDemo}>
-              <Play size={15} aria-hidden="true" />
-              {isRunningDemo ? "Running..." : demoModeLabels.primaryAction}
-            </button>
-          </div>
-        </div>
-        <p className="workspace-section-copy">{demoModeLabels.description}</p>
-        <p className="demo-state-message" data-save-state={demoState.status}>{demoState.message}</p>
-
-        <div className="demo-step-grid">
-          {demoSteps.map((step, index) => (
-            <article className="demo-step-card" key={step.title}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <strong>{step.title}</strong>
-                <p>{step.detail}</p>
-              </div>
-              <b data-status={step.status}>{step.status}</b>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <aside className="demo-output-panel" aria-label="Demo output">
-        <div className="inspector-card status-card">
-          <span>Demo batch</span>
-          <strong>Ready to run</strong>
-          <p>Two workflows, four sample documents, three review issues, and two delivery paths.</p>
-        </div>
-        <div className="demo-output-list">
-          <div>
-            <CheckCircle2 size={17} aria-hidden="true" />
-            <span>Records table seeded with reviewed sample records</span>
-          </div>
-          <div>
-            <Download size={17} aria-hidden="true" />
-            <span>CSV export preview prepared for approved records</span>
-          </div>
-          <div>
-            <Send size={17} aria-hidden="true" />
-            <span>Webhook simulation queued for delivery logging</span>
-          </div>
-        </div>
       </aside>
     </div>
   );
@@ -236,10 +156,10 @@ export function WorkflowBuilder({
 
         <div className="app-builder-main">
           {activeStage === "Document" ? (
-            <DocumentStage draft={workflowDraft} onDraftChange={onWorkflowDraftChange} />
+            <DocumentStage draft={workflowDraft} onDraftChange={onWorkflowDraftChange} onNext={() => onChangeStage("Fields")} />
           ) : null}
-          {activeStage === "Fields" ? <FieldsStage fields={fields} onAddField={onAddField} /> : null}
-          {activeStage === "Review" ? <ReviewStage /> : null}
+          {activeStage === "Fields" ? <FieldsStage fields={fields} onAddField={onAddField} onNext={() => onChangeStage("Review")} /> : null}
+          {activeStage === "Review" ? <ReviewStage onNext={() => onChangeStage("Delivery")} /> : null}
           {activeStage === "Delivery" ? <DeliveryStage /> : null}
         </div>
       </section>
@@ -308,9 +228,11 @@ export function WorkflowBuilder({
 function DocumentStage({
   draft,
   onDraftChange,
+  onNext,
 }: {
   draft: WorkflowDraft;
   onDraftChange: (updates: Partial<WorkflowDraft>) => void;
+  onNext: () => void;
 }) {
   return (
     <>
@@ -360,11 +282,17 @@ function DocumentStage({
           />
         </label>
       </div>
+
+      <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
+        <button className="app-primary-action" type="button" onClick={onNext}>
+          Next: Field schema <ArrowRight size={16} aria-hidden="true" />
+        </button>
+      </div>
     </>
   );
 }
 
-function FieldsStage({ fields, onAddField }: { fields: AppField[]; onAddField: () => void }) {
+function FieldsStage({ fields, onAddField, onNext }: { fields: AppField[]; onAddField: () => void; onNext: () => void }) {
   return (
     <>
       <div className="builder-title-row">
@@ -394,11 +322,17 @@ function FieldsStage({ fields, onAddField }: { fields: AppField[]; onAddField: (
           </div>
         ))}
       </div>
+
+      <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
+        <button className="app-primary-action" type="button" onClick={onNext}>
+          Next: Review rules <ArrowRight size={16} aria-hidden="true" />
+        </button>
+      </div>
     </>
   );
 }
 
-function ReviewStage() {
+function ReviewStage({ onNext }: { onNext: () => void }) {
   return (
     <>
       <div className="builder-title-row">
@@ -427,6 +361,12 @@ function ReviewStage() {
             ))}
           </ul>
         </article>
+      </div>
+
+      <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
+        <button className="app-primary-action" type="button" onClick={onNext}>
+          Next: Delivery <ArrowRight size={16} aria-hidden="true" />
+        </button>
       </div>
     </>
   );
@@ -470,14 +410,34 @@ export function WorkspaceSectionView({
   title,
   savedWorkflows,
   uploadState,
+  deliveryState,
+  reviewActionState,
+  items,
   isUploadingDocument,
+  isTestingWebhook,
+  isApprovingReview,
+  runWorkflowId,
+  setRunWorkflowId,
   onUploadDocument,
+  onExportRecords,
+  onTestWebhook,
+  onApproveNextReview,
 }: {
   title: Exclude<AppSection, "Workflows">;
   savedWorkflows: WorkflowDefinition[];
   uploadState: WorkflowSaveState;
+  deliveryState: WorkflowSaveState;
+  reviewActionState: WorkflowSaveState;
+  items: WorkspaceItem[];
   isUploadingDocument: boolean;
+  isTestingWebhook: boolean;
+  isApprovingReview: boolean;
+  runWorkflowId?: string;
+  setRunWorkflowId?: (id: string) => void;
   onUploadDocument: (event: FormEvent<HTMLFormElement>) => void;
+  onExportRecords: () => void;
+  onTestWebhook: () => void;
+  onApproveNextReview: () => void;
 }) {
   const content = workspaceSectionContent[title];
   const PrimaryIcon = title === "Runs" ? Upload : title === "Records" ? Download : title === "Integrations" ? Send : CheckCircle2;
@@ -496,13 +456,36 @@ export function WorkspaceSectionView({
               className={action.intent === "primary" ? "app-primary-action" : "app-secondary-action"}
               key={action.label}
               type="button"
+              disabled={
+                (title === "Integrations" && index === 0 && isTestingWebhook) ||
+                (title === "Review queue" && index === 0 && isApprovingReview)
+              }
+              onClick={() => {
+                if (title === "Records" && index === 0) {
+                  onExportRecords();
+                }
+                if (title === "Review queue" && index === 0) {
+                  onApproveNextReview();
+                }
+                if (title === "Integrations" && index === 0) {
+                  onTestWebhook();
+                }
+              }}
             >
               {index === 0 ? <PrimaryIcon size={16} aria-hidden="true" /> : null}
-              {action.label}
+              {title === "Integrations" && index === 0 && isTestingWebhook ? "Testing..." : null}
+              {title === "Review queue" && index === 0 && isApprovingReview ? "Approving..." : null}
+              {!(title === "Integrations" && index === 0 && isTestingWebhook) && !(title === "Review queue" && index === 0 && isApprovingReview) ? action.label : null}
             </button>
           ))}
         </div>
       </div>
+      {title === "Review queue" ? (
+        <p className="delivery-state-message" data-save-state={reviewActionState.status}>{reviewActionState.message}</p>
+      ) : null}
+      {title === "Integrations" ? (
+        <p className="delivery-state-message" data-save-state={deliveryState.status}>{deliveryState.message}</p>
+      ) : null}
 
       <div className="workspace-item-list">
         {title === "Runs" ? (
@@ -514,7 +497,12 @@ export function WorkspaceSectionView({
             </div>
             <label>
               Workflow
-              <select name="workflow_id" disabled={savedWorkflows.length === 0 || isUploadingDocument}>
+              <select 
+                name="workflow_id" 
+                disabled={savedWorkflows.length === 0 || isUploadingDocument}
+                value={runWorkflowId}
+                onChange={(e) => setRunWorkflowId?.(e.target.value)}
+              >
                 {savedWorkflows.length === 0 ? (
                   <option value="">Publish a workflow first</option>
                 ) : null}
@@ -547,7 +535,14 @@ export function WorkspaceSectionView({
           </form>
         ) : null}
 
-        {content.items.map((item) => (
+        {items.length === 0 ? (
+          <div className="empty-workflow-state">
+            <strong>{title === "Runs" ? "No document runs yet" : title === "Review queue" ? "No review items yet" : "No records yet"}</strong>
+            <p>{title === "Runs" ? "Publish a workflow and upload your own document to create the first run." : title === "Review queue" ? "Review items will appear after extraction finds missing or low-confidence fields." : "Extracted records will appear after documents are uploaded and processed."}</p>
+          </div>
+        ) : null}
+
+        {items.map((item) => (
           <article className="workspace-item-row" key={`${title}-${item.title}`}>
             <div>
               <strong>{item.title}</strong>

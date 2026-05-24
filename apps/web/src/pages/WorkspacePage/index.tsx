@@ -1,8 +1,7 @@
-import { ArrowRight, Play, Plus } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
 import {
   AddFieldModal,
-  DemoMode,
   WorkflowBuilder,
   WorkflowOverview,
   WorkspaceSectionView,
@@ -17,17 +16,19 @@ export function WorkspacePage() {
     fields,
     workflowDraft,
     savedWorkflows,
+    workspaceItems,
     configPreview,
     validationErrors,
     saveState,
     uploadState,
-    demoState,
+    deliveryState,
+    reviewActionState,
     isSavingWorkflow,
     isUploadingDocument,
-    isRunningDemo,
+    isTestingWebhook,
+    isApprovingReview,
     isAddFieldOpen,
     setActiveStage,
-    setWorkflowView,
     setIsAddFieldOpen,
     updateWorkflowDraft,
     handleSectionClick,
@@ -35,16 +36,19 @@ export function WorkspacePage() {
     openWorkflow,
     publishWorkflow,
     handleUploadDocument,
-    handleRunDemo,
+    handleExportRecords,
+    handleTestWebhook,
+    handleApproveNextReview,
     handleAddField,
+    runWorkflowId,
+    setRunWorkflowId,
   } = useWorkflowBuilder();
 
 
 
   const isWorkflowBuilder = activeSection === "Workflows" && workflowView === "builder";
-  const isDemoMode = activeSection === "Workflows" && workflowView === "demo";
   const appTitle = activeSection === "Workflows"
-    ? isWorkflowBuilder ? "Contract intake" : isDemoMode ? "Demo mode" : "Workflows"
+    ? isWorkflowBuilder ? "Contract intake" : "Workflows"
     : activeSection;
 
   return (
@@ -86,24 +90,14 @@ export function WorkspacePage() {
           </div>
           <div className="app-topbar-actions">
             {activeSection === "Workflows" && workflowView === "overview" ? (
-              <>
-                <button
-                  className="app-secondary-action"
-                  type="button"
-                  onClick={() => setWorkflowView("demo")}
-                >
-                  <Play size={16} aria-hidden="true" />
-                  {workspaceLabels.topbar.actions.startDemo}
-                </button>
-                <button
-                  className="app-primary-action"
-                  type="button"
-                  onClick={() => createDraftWorkflow()}
-                >
-                  <Plus size={16} aria-hidden="true" />
-                  {workspaceLabels.topbar.actions.newWorkflow}
-                </button>
-              </>
+              <button
+                className="app-primary-action"
+                type="button"
+                onClick={() => createDraftWorkflow()}
+              >
+                <Plus size={16} aria-hidden="true" />
+                {workspaceLabels.topbar.actions.newWorkflow}
+              </button>
             ) : null}
             {isWorkflowBuilder ? (
               <>
@@ -125,7 +119,10 @@ export function WorkspacePage() {
               createDraftWorkflow(name, type);
             }}
             onOpenWorkflow={openWorkflow}
-            onStartDemo={() => setWorkflowView("demo")}
+            onRunWorkflow={(id) => {
+              setRunWorkflowId(id);
+              handleSectionClick("Runs");
+            }}
             savedWorkflows={savedWorkflows}
           />
         ) : null}
@@ -144,24 +141,23 @@ export function WorkspacePage() {
           />
         ) : null}
 
-        {isDemoMode ? (
-          <DemoMode
-            onOpenReviewQueue={() => {
-              handleSectionClick("Review queue");
-            }}
-            onRunDemo={handleRunDemo}
-            demoState={demoState}
-            isRunningDemo={isRunningDemo}
-          />
-        ) : null}
-
         {activeSection !== "Workflows" ? (
           <WorkspaceSectionView
             title={activeSection}
             savedWorkflows={savedWorkflows}
             uploadState={uploadState}
+            deliveryState={deliveryState}
+            reviewActionState={reviewActionState}
+            items={workspaceItems[activeSection]}
             isUploadingDocument={isUploadingDocument}
+            isTestingWebhook={isTestingWebhook}
+            isApprovingReview={isApprovingReview}
+            runWorkflowId={runWorkflowId}
+            setRunWorkflowId={setRunWorkflowId}
             onUploadDocument={handleUploadDocument}
+            onExportRecords={handleExportRecords}
+            onTestWebhook={handleTestWebhook}
+            onApproveNextReview={handleApproveNextReview}
           />
         ) : null}
       </section>
