@@ -2,10 +2,12 @@ import { ArrowRight, Plus } from "lucide-react";
 import { useWorkflowBuilder } from "@/hooks/useWorkflowBuilder";
 import {
   AddFieldModal,
+  AppToast,
   WorkflowBuilder,
   WorkflowOverview,
   WorkspaceSectionView,
 } from "@/components/WorkspaceComponents";
+import { useEffect } from "react";
 import { workspaceLabels, navItems } from "./labels";
 
 export function WorkspacePage() {
@@ -42,7 +44,16 @@ export function WorkspacePage() {
     handleAddField,
     runWorkflowId,
     setRunWorkflowId,
+    toastMessage,
+    setToastMessage,
   } = useWorkflowBuilder();
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage, setToastMessage]);
 
 
 
@@ -164,6 +175,14 @@ export function WorkspacePage() {
 
       {isAddFieldOpen ? (
         <AddFieldModal onClose={() => setIsAddFieldOpen(false)} onSubmit={handleAddField} />
+      ) : null}
+
+      {toastMessage ? (
+        <AppToast 
+          message={toastMessage.message} 
+          type={toastMessage.type} 
+          onClose={() => setToastMessage(null)} 
+        />
       ) : null}
     </main>
   );

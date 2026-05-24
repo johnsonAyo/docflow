@@ -29,7 +29,7 @@ export type AppField = {
 export type WorkflowDraft = {
   name: string;
   documentType: string;
-  intakeSource: string;
+  intakeSources: string[];
   completeRecord: string;
 };
 
@@ -50,7 +50,7 @@ export type WorkflowPayload = {
   name: string;
   document_type: string;
   status: WorkflowStatus;
-  intake_source: string;
+  intake_source: string[];
   complete_record: string;
   fields: AppField[];
   review_rules: Array<Record<string, unknown>>;

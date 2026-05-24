@@ -12,7 +12,6 @@ import {
 import {
   workspaceComponentsLabels,
   workflowStages,
-  appRuns,
   workspaceSectionContent,
 } from "./labels";
 
@@ -23,7 +22,7 @@ export function WorkflowOverview({
   savedWorkflows,
 }: {
   onCreateWorkflow: (name: string, documentType: string) => void;
-  onOpenWorkflow: (workflowId?: string) => void;
+  onOpenWorkflow: (workflowId: string) => void;
   onRunWorkflow: (workflowId: string) => void;
   savedWorkflows: WorkflowDefinition[];
 }) {
@@ -44,13 +43,7 @@ export function WorkflowOverview({
             <p className="app-kicker">{workspaceComponentsLabels.overview.publishedWorkflows.kicker}</p>
             <h2 id="published-workflows-title">{workspaceComponentsLabels.overview.publishedWorkflows.title}</h2>
           </div>
-          <button
-            className="app-secondary-action compact"
-            type="button"
-            onClick={() => onOpenWorkflow()}
-          >
-            {workspaceComponentsLabels.overview.publishedWorkflows.actionOpen}
-          </button>
+
         </div>
 
         <div className="published-workflow-list">
@@ -61,7 +54,12 @@ export function WorkflowOverview({
             </div>
           ) : null}
           {workflowRows.map((workflow) => (
-            <article className="published-workflow-row" key={workflow.id ?? workflow.name}>
+            <article
+              className="published-workflow-row"
+              key={workflow.id ?? workflow.name}
+              onClick={() => onRunWorkflow(workflow.id!)}
+              style={{ cursor: "pointer" }}
+            >
               <div>
                 <strong>{workflow.name}</strong>
                 <span>{workflow.type} · {workflow.owner}</span>
@@ -72,16 +70,12 @@ export function WorkflowOverview({
                 <button
                   className="app-secondary-action compact"
                   type="button"
-                  onClick={() => onOpenWorkflow(workflow.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenWorkflow(workflow.id);
+                  }}
                 >
                   {workspaceComponentsLabels.overview.publishedWorkflows.actionEdit}
-                </button>
-                <button
-                  className="app-primary-action compact"
-                  type="button"
-                  onClick={() => onRunWorkflow(workflow.id!)}
-                >
-                  Run
                 </button>
               </div>
             </article>
@@ -97,14 +91,13 @@ export function WorkflowOverview({
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
-            const name = String(formData.get("name") || "Contract intake");
-            const type = "Contract";
-            onCreateWorkflow(name, type);
+            const name = String(formData.get("name") || "");
+            onCreateWorkflow(name, "");
           }}
         >
           <label>
             {workspaceComponentsLabels.overview.createWorkflow.fields.name}
-            <input name="name" type="text" defaultValue={workspaceComponentsLabels.overview.createWorkflow.fields.nameValue} required />
+            <input name="name" type="text" placeholder="e.g. New supplier packet" required />
           </label>
           <button className="app-primary-action" type="submit">
             <Plus size={16} aria-hidden="true" />
@@ -186,18 +179,11 @@ export function WorkflowBuilder({
         <div className="inspector-card">
           <div className="inspector-heading">
             <span>{workspaceComponentsLabels.builder.inspector.latestRun.title}</span>
-            <b>{workspaceComponentsLabels.builder.inspector.latestRun.batch}</b>
           </div>
           <div className="run-list">
-            {appRuns.map((run) => (
-              <div className="run-row" key={run.document}>
-                <div>
-                  <strong>{run.document}</strong>
-                  <span>{run.type} · {run.owner}</span>
-                </div>
-                <b data-status={run.status}>{run.status}</b>
-              </div>
-            ))}
+            <div style={{ padding: "16px", textAlign: "center", color: "var(--muted)", fontSize: "0.85rem", fontStyle: "italic", border: "1px dashed var(--line-strong)", borderRadius: "var(--r-sm)" }}>
+              Runs will appear here once this workflow is published and documents are uploaded.
+            </div>
           </div>
         </div>
 
@@ -211,13 +197,11 @@ export function WorkflowBuilder({
 
         <div className="inspector-card evidence-card">
           <span>{workspaceComponentsLabels.builder.inspector.evidence.title}</span>
-          <div className="evidence-document">
-            <b>{workspaceComponentsLabels.builder.inspector.evidence.document.clause}</b>
-            <p>{workspaceComponentsLabels.builder.inspector.evidence.document.text}</p>
+          <div className="evidence-document" style={{ border: "1px dashed var(--line-strong)", color: "var(--muted)", fontStyle: "italic", fontSize: "0.85rem", background: "transparent", textAlign: "center", padding: "24px 16px" }}>
+            Upload a document to preview the text and visual extraction layout.
           </div>
-          <div className="extraction-result">
-            <strong>{workspaceComponentsLabels.builder.inspector.evidence.result.title}</strong>
-            <span>{workspaceComponentsLabels.builder.inspector.evidence.result.details}</span>
+          <div className="extraction-result" style={{ border: "1px dashed var(--line-strong)", color: "var(--muted)", fontStyle: "italic", fontSize: "0.85rem", background: "transparent", textAlign: "center", padding: "24px 16px", borderRadius: "var(--r-sm)" }}>
+            Extracted fields and confidence scores will appear here.
           </div>
         </div>
       </aside>
@@ -249,6 +233,7 @@ function DocumentStage({
           <input
             type="text"
             value={draft.name}
+            placeholder="e.g. Contract intake"
             onChange={(event) => onDraftChange({ name: event.target.value })}
           />
         </label>
@@ -258,26 +243,40 @@ function DocumentStage({
             value={draft.documentType}
             onChange={(event) => onDraftChange({ documentType: event.target.value })}
           >
+            <option value="" disabled hidden>Select document type...</option>
             {workspaceComponentsLabels.builder.stages.document.fields.typeOptions.map((opt) => (
               <option key={opt}>{opt}</option>
             ))}
           </select>
         </label>
-        <label>
-          {workspaceComponentsLabels.builder.stages.document.fields.source}
-          <select
-            value={draft.intakeSource}
-            onChange={(event) => onDraftChange({ intakeSource: event.target.value })}
-          >
+        <fieldset style={{ border: "none", padding: "16px 0", margin: 0, borderBottom: "1px solid var(--line)" }}>
+          <legend style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--faint)", marginBottom: "0.75rem", letterSpacing: "0.02em" }}>
+            {workspaceComponentsLabels.builder.stages.document.fields.source}
+          </legend>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             {workspaceComponentsLabels.builder.stages.document.fields.sourceOptions.map((opt) => (
-              <option key={opt}>{opt}</option>
+              <label key={opt} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 400, cursor: "pointer", fontSize: "0.9rem", color: "var(--ink)", letterSpacing: 0, textTransform: "none" }}>
+                <input
+                  type="checkbox"
+                  style={{ width: 14, height: 14, accentColor: "var(--accent)", cursor: "pointer", flexShrink: 0 }}
+                  checked={draft.intakeSources.includes(opt)}
+                  onChange={(event) => {
+                    const next = event.target.checked
+                      ? [...draft.intakeSources, opt]
+                      : draft.intakeSources.filter((s) => s !== opt);
+                    onDraftChange({ intakeSources: next });
+                  }}
+                />
+                {opt}
+              </label>
             ))}
-          </select>
-        </label>
+          </div>
+        </fieldset>
         <label>
-          {workspaceComponentsLabels.builder.stages.document.fields.record}
+          {workspaceComponentsLabels.builder.stages.document.fields.summary}
           <textarea
             value={draft.completeRecord}
+            placeholder="Briefly describe what this workflow processes, e.g. Vendor contracts from the procurement team."
             onChange={(event) => onDraftChange({ completeRecord: event.target.value })}
           />
         </label>
@@ -312,15 +311,21 @@ function FieldsStage({ fields, onAddField, onNext }: { fields: AppField[]; onAdd
             <span key={header}>{header}</span>
           ))}
         </div>
-        {fields.map((field) => (
-          <div className="schema-row" role="row" key={`${field.name}-${field.source}`}>
-            <strong>{field.name}</strong>
-            <span>{field.type}</span>
-            <span>{field.source}</span>
-            <span>{field.confidence}</span>
-            <span>{field.rule}</span>
+        {fields.length === 0 ? (
+          <div style={{ padding: "32px", textAlign: "center", color: "var(--muted)", fontSize: "0.9rem", background: "var(--surface-soft)", borderRadius: "0 0 var(--r-md) var(--r-md)" }}>
+            No fields defined yet. Click "Add field" to build your extraction schema.
           </div>
-        ))}
+        ) : (
+          fields.map((field) => (
+            <div className="schema-row" role="row" key={`${field.name}-${field.source}`}>
+              <strong>{field.name}</strong>
+              <span>{field.type}</span>
+              <span>{field.source}</span>
+              <span>{field.confidence}</span>
+              <span>{field.rule}</span>
+            </div>
+          ))
+        )}
       </div>
 
       <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
@@ -497,8 +502,8 @@ export function WorkspaceSectionView({
             </div>
             <label>
               Workflow
-              <select 
-                name="workflow_id" 
+              <select
+                name="workflow_id"
                 disabled={savedWorkflows.length === 0 || isUploadingDocument}
                 value={runWorkflowId}
                 onChange={(e) => setRunWorkflowId?.(e.target.value)}
@@ -594,21 +599,15 @@ export function AddFieldModal({
             </select>
           </label>
           <label>
-            {workspaceComponentsLabels.addFieldModal.fields.source.label}
-            <select name="evidenceSource" defaultValue={workspaceComponentsLabels.addFieldModal.fields.source.options[3]}>
-              {workspaceComponentsLabels.addFieldModal.fields.source.options.map((opt) => (
-                <option key={opt}>{opt}</option>
-              ))}
-            </select>
-          </label>
-          <label>
             {workspaceComponentsLabels.addFieldModal.fields.rule.label}
-            <select name="reviewRule" defaultValue={workspaceComponentsLabels.addFieldModal.fields.rule.options[2]}>
+            <select name="reviewRule">
+              <option value="" disabled selected>Select review rule...</option>
               {workspaceComponentsLabels.addFieldModal.fields.rule.options.map((opt) => (
                 <option key={opt}>{opt}</option>
               ))}
             </select>
           </label>
+
           <label className="wide-field">
             {workspaceComponentsLabels.addFieldModal.fields.instruction.label}
             <textarea name="instruction" placeholder={workspaceComponentsLabels.addFieldModal.fields.instruction.placeholder} />
@@ -618,11 +617,59 @@ export function AddFieldModal({
               {workspaceComponentsLabels.addFieldModal.actions.cancel}
             </button>
             <button className="app-primary-action" type="submit">
+              <Plus size={16} aria-hidden="true" />
               {workspaceComponentsLabels.addFieldModal.actions.submit}
             </button>
           </div>
         </form>
       </section>
+    </div>
+  );
+}
+
+export function AppToast({
+  message,
+  type,
+  onClose
+}: {
+  message: string;
+  type: "error" | "success";
+  onClose: () => void;
+}) {
+  return (
+    <div className={`app-toast ${type}`} role="alert" style={{
+      position: "fixed",
+      bottom: "24px",
+      right: "24px",
+      backgroundColor: type === "error" ? "var(--error-bg, #fee2e2)" : "var(--success-bg, #dcfce7)",
+      color: type === "error" ? "var(--error-text, #991b1b)" : "var(--success-text, #166534)",
+      padding: "12px 16px",
+      borderRadius: "8px",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      zIndex: 50,
+      maxWidth: "400px",
+      animation: "slideIn 0.3s ease-out forwards"
+    }}>
+      <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 500 }}>{message}</p>
+      <button
+        onClick={onClose}
+        style={{
+          background: "none", border: "none", cursor: "pointer",
+          padding: 0, color: "inherit", opacity: 0.7
+        }}
+        aria-label="Close"
+      >
+        <X size={16} />
+      </button>
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

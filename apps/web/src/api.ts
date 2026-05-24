@@ -37,6 +37,9 @@ async function parseJsonResponse<T>(response: Response, fallbackMessage: string)
   try {
     const body = await response.json() as { detail?: string };
     detail = body.detail || detail;
+    if (response.status === 404 && detail === "Not Found") {
+      detail = "The backend API endpoint is not available yet. Please wait a minute for deployment to finish.";
+    }
   } catch {
     detail = `${fallbackMessage} (${response.status})`;
   }

@@ -20,7 +20,7 @@ export const workspaceComponentsLabels = {
       title: "Publish a new workflow",
       fields: {
         name: "Workflow name",
-        nameValue: "New supplier packet",
+        nameValue: "",
         type: "Document type",
         typeOptions: ["Contract", "Invoice", "Vendor form", "Custom document"]
       },
@@ -36,19 +36,10 @@ export const workspaceComponentsLabels = {
           `${stages} configured stages, ${fields} extracted fields, ${rules} human review rules.`
       },
       latestRun: {
-        title: "Latest run",
-        batch: "Batch CT-219"
+        title: "Latest run"
       },
       evidence: {
-        title: "Evidence preview",
-        document: {
-          clause: "Renewal clause",
-          text: "Agreement renews for successive one-year periods unless either party gives written notice at least sixty days prior to expiration."
-        },
-        result: {
-          title: "Auto-renewal detected",
-          details: "73% confidence · routed to review"
-        }
+        title: "Evidence preview"
       }
     },
     stages: {
@@ -57,13 +48,11 @@ export const workspaceComponentsLabels = {
         title: "Define what this workflow accepts.",
         fields: {
           name: "Workflow name",
-          nameValue: "Contract intake",
           type: "Document type",
           typeOptions: ["Contract", "Invoice", "Vendor form"],
           source: "Intake source",
           sourceOptions: ["Shared inbox", "Manual upload", "API upload"],
-          record: "Complete record",
-          recordValue: "Counterparty, dates, renewal terms, payment terms, and approval evidence."
+          summary: "Workflow summary"
         }
       },
       fields: {
@@ -151,86 +140,11 @@ export const workspaceComponentsLabels = {
   }
 };
 
-export const appRuns: AppRun[] = [
-  {
-    document: "Harbourline master services agreement",
-    type: "Contract",
-    status: "Needs review",
-    issues: 2,
-    owner: "Trade Ops",
-  },
-  {
-    document: "Northline industrial invoice 0427",
-    type: "Invoice",
-    status: "Ready",
-    issues: 0,
-    owner: "Finance",
-  },
-  {
-    document: "Westbridge supplier onboarding pack",
-    type: "Vendor form",
-    status: "In review",
-    issues: 4,
-    owner: "Procurement",
-  },
-];
-
 export const publishedWorkflows: PublishedWorkflow[] = [
-  {
-    name: "Contract intake",
-    type: "Contract",
-    status: "Published",
-    documents: "94 documents",
-    owner: "Trade Ops",
-  },
-  {
-    name: "Invoice approval",
-    type: "Invoice",
-    status: "Published",
-    documents: "128 documents",
-    owner: "Finance",
-  },
-  {
-    name: "Supplier onboarding",
-    type: "Vendor form",
-    status: "Draft",
-    documents: "25 documents",
-    owner: "Procurement",
-  },
+
 ];
 
 export const workflowStages: WorkflowStage[] = ["Document", "Fields", "Review", "Delivery"];
-
-export const appFields: AppField[] = [
-  {
-    name: "Counterparty",
-    type: "Company",
-    source: "Header + signature block",
-    confidence: "96%",
-    rule: "Required",
-  },
-  {
-    name: "Effective date",
-    type: "Date",
-    source: "Opening clause",
-    confidence: "94%",
-    rule: "Required",
-  },
-  {
-    name: "Renewal clause",
-    type: "Clause",
-    source: "Term section",
-    confidence: "73%",
-    rule: "Review below 82%",
-  },
-  {
-    name: "Payment terms",
-    type: "Terms",
-    source: "Commercial schedule",
-    confidence: "88%",
-    rule: "Flag if missing",
-  },
-];
 
 export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, WorkspaceSectionContent> = {
   Runs: {
@@ -241,26 +155,7 @@ export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, W
       { label: "Upload documents", intent: "primary" },
       { label: "View runs", intent: "secondary" },
     ],
-    items: [
-      {
-        title: "Harbourline master services agreement",
-        meta: "Contract · Trade Ops",
-        status: "Needs review",
-        detail: "2 issues after extraction",
-      },
-      {
-        title: "Northline industrial invoice 0427",
-        meta: "Invoice · Finance",
-        status: "Ready",
-        detail: "All required fields extracted",
-      },
-      {
-        title: "Westbridge supplier onboarding pack",
-        meta: "Vendor form · Procurement",
-        status: "In review",
-        detail: "4 fields awaiting approval",
-      },
-    ],
+    items: []
   },
   "Review queue": {
     kicker: "Human review",
@@ -270,26 +165,7 @@ export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, W
       { label: "Approve next item", intent: "primary" },
       { label: "Filter issues", intent: "secondary" },
     ],
-    items: [
-      {
-        title: "Renewal clause",
-        meta: "Harbourline contract · 73% confidence",
-        status: "Needs review",
-        detail: "Auto-renewal detected with ambiguous notice period",
-      },
-      {
-        title: "Invoice total",
-        meta: "Northline invoice · 81% confidence",
-        status: "Needs review",
-        detail: "Subtotal, tax, and total do not reconcile",
-      },
-      {
-        title: "Payment terms",
-        meta: "Westbridge supplier pack · 88% confidence",
-        status: "In review",
-        detail: "Reviewer changed net terms from 45 to 30 days",
-      },
-    ],
+    items: []
   },
   Records: {
     kicker: "Structured records",
@@ -299,26 +175,7 @@ export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, W
       { label: "Export CSV", intent: "primary" },
       { label: "View record detail", intent: "secondary" },
     ],
-    items: [
-      {
-        title: "Northline industrial invoice 0427",
-        meta: "Invoice approval · Finance",
-        status: "Ready",
-        detail: "$18,420.00 due 2026-06-15",
-      },
-      {
-        title: "Harbourline master services agreement",
-        meta: "Contract intake · Trade Ops",
-        status: "Needs review",
-        detail: "Renewal, governing law, and penalties captured",
-      },
-      {
-        title: "Westbridge supplier onboarding pack",
-        meta: "Supplier onboarding · Procurement",
-        status: "Draft",
-        detail: "Tax ID and bank verification pending",
-      },
-    ],
+    items: []
   },
   Integrations: {
     kicker: "Delivery",
@@ -328,25 +185,6 @@ export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, W
       { label: "Test webhook", intent: "primary" },
       { label: "Configure CSV", intent: "secondary" },
     ],
-    items: [
-      {
-        title: "CSV export",
-        meta: "Per workflow or document run",
-        status: "Planned",
-        detail: "Download reviewed records with source and confidence columns",
-      },
-      {
-        title: "Webhook delivery",
-        meta: "Local endpoint simulation",
-        status: "Planned",
-        detail: "Send approved records and log delivery outcome",
-      },
-      {
-        title: "Records API",
-        meta: "Backend metadata route",
-        status: "Available",
-        detail: "Expose records for downstream tools and scripts",
-      },
-    ],
+    items: []
   },
 };

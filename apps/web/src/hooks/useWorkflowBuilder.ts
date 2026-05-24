@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createWorkflow,
   listDocumentRuns,
@@ -25,13 +26,12 @@ import {
   ReviewState,
   WorkspaceItem,
 } from "@/types";
-import { appFields, workspaceSectionContent } from "@/components/WorkspaceComponents/labels";
 
 const defaultWorkflowDraft: WorkflowDraft = {
-  name: "Contract intake",
-  documentType: "Contract",
-  intakeSource: "Shared inbox",
-  completeRecord: "Counterparty, dates, renewal terms, payment terms, and approval evidence.",
+  name: "",
+  documentType: "",
+  intakeSources: [],
+  completeRecord: "",
 };
 
 const reviewRules = [
@@ -76,7 +76,7 @@ function workflowConfig(draft: WorkflowDraft, fields: AppField[]) {
     version: 1,
     name: draft.name,
     document_type: draft.documentType,
-    intake_source: draft.intakeSource,
+    intake_source: draft.intakeSources,
     complete_record: draft.completeRecord,
     fields,
     review_rules: reviewRules,
@@ -93,7 +93,7 @@ function workflowPayload(
     name: draft.name,
     document_type: draft.documentType,
     status,
-    intake_source: draft.intakeSource,
+    intake_source: draft.intakeSources,
     complete_record: draft.completeRecord,
     fields,
     review_rules: reviewRules,
@@ -108,7 +108,11 @@ function mapWorkflowToDraft(workflow: WorkflowDefinition): WorkflowDraft {
   return {
     name: workflow.name,
     documentType: workflow.document_type,
-    intakeSource: typeof config.intake_source === "string" ? config.intake_source : "Manual upload",
+    intakeSources: Array.isArray(config.intake_source)
+      ? (config.intake_source as string[])
+      : typeof config.intake_source === "string" && config.intake_source
+        ? [config.intake_source]
+        : [],
     completeRecord: typeof config.complete_record === "string" ? config.complete_record : "",
   };
 }
@@ -116,7 +120,7 @@ function mapWorkflowToDraft(workflow: WorkflowDefinition): WorkflowDraft {
 function mapWorkflowFields(workflow: WorkflowDefinition): AppField[] {
   const configFields = workflow.config.fields;
   if (!Array.isArray(configFields)) {
-    return appFields;
+    return [];
   }
 
   return configFields
@@ -183,17 +187,37 @@ function fieldDisplay(fields: Array<Record<string, unknown>>) {
 }
 
 export function useWorkflowBuilder() {
+  const queryClient = useQueryClient();
+
   const [activeSection, setActiveSection] = useState<AppSection>("Workflows");
   const [workflowView, setWorkflowView] = useState<"overview" | "builder">("overview");
   const [activeStage, setActiveStage] = useState<WorkflowStage>("Fields");
-  const [fields, setFields] = useState<AppField[]>(appFields);
+  const [fields, setFields] = useState<AppField[]>([]);
   const [workflowDraft, setWorkflowDraft] = useState<WorkflowDraft>(defaultWorkflowDraft);
-  const [savedWorkflows, setSavedWorkflows] = useState<WorkflowDefinition[]>([]);
-  const [documentRuns, setDocumentRuns] = useState<DocumentRun[]>([]);
-  const [records, setRecords] = useState<ExtractedRecord[]>([]);
-  const [reviewStates, setReviewStates] = useState<ReviewState[]>([]);
   const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null);
   const [runWorkflowId, setRunWorkflowId] = useState<string | "">("");
+  const [toastMessage, setToastMessage] = useState<{ message: string; type: "error" | "success" } | null>(null);
+
+  const { data: savedWorkflows = [] } = useQuery({
+    queryKey: ["workflows"],
+    queryFn: listWorkflows,
+  });
+
+  const { data: documentRuns = [] } = useQuery({
+    queryKey: ["documentRuns"],
+    queryFn: () => listDocumentRuns(),
+  });
+
+  const { data: records = [] } = useQuery({
+    queryKey: ["records"],
+    queryFn: () => listRecords(),
+  });
+
+  const { data: reviewStates = [] } = useQuery({
+    queryKey: ["reviewStates"],
+    queryFn: () => listReviewStates(),
+  });
+
   const [saveState, setSaveState] = useState<WorkflowSaveState>({
     status: "idle",
     message: "Workflow has not been saved yet.",
@@ -220,6 +244,7 @@ export function useWorkflowBuilder() {
     () => validateWorkflow(workflowDraft, fields),
     [fields, workflowDraft],
   );
+
   const workspaceItems = useMemo<Record<Exclude<AppSection, "Workflows">, WorkspaceItem[]>>(() => {
     const runs = documentRuns.map((run) => ({
       title: run.document_name,
@@ -251,47 +276,9 @@ export function useWorkflowBuilder() {
       Runs: runs,
       "Review queue": reviews,
       Records: recordRows,
-      Integrations: workspaceSectionContent.Integrations.items,
+      Integrations: [],
     };
-  }, [documentRuns, records, reviewStates, savedWorkflows]);
-
-  const refreshWorkspaceResources = useCallback(async (workflowId?: string) => {
-    const [nextRuns, nextRecords, nextReviewStates] = await Promise.all([
-      listDocumentRuns(workflowId),
-      listRecords(workflowId),
-      listReviewStates(workflowId),
-    ]);
-    setDocumentRuns(nextRuns);
-    setRecords(nextRecords);
-    setReviewStates(nextReviewStates);
-  }, []);
-
-  useEffect(() => {
-    let isCurrent = true;
-
-    async function loadSavedWorkflows() {
-      try {
-        const workflows = await listWorkflows();
-        if (isCurrent) {
-          setSavedWorkflows(workflows);
-          void refreshWorkspaceResources();
-        }
-      } catch (error) {
-        if (isCurrent) {
-          setSaveState({
-            status: "error",
-            message: error instanceof Error ? error.message : "Could not load saved workflows.",
-          });
-        }
-      }
-    }
-
-    void loadSavedWorkflows();
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [refreshWorkspaceResources]);
+  }, [documentRuns, savedWorkflows, reviewStates, records]);
 
   function updateWorkflowDraft(updates: Partial<WorkflowDraft>) {
     setWorkflowDraft((currentDraft) => ({
@@ -311,14 +298,14 @@ export function useWorkflowBuilder() {
     }
   }
 
-  function createDraftWorkflow(name: string = "Contract intake", documentType: string = "Contract") {
+  function createDraftWorkflow(name: string = "", documentType: string = "") {
     setActiveWorkflowId(null);
     setWorkflowDraft({
       ...defaultWorkflowDraft,
       name,
       documentType,
     });
-    setFields(appFields);
+    setFields([]);
     setWorkflowView("builder");
     setActiveStage("Document");
     setSaveState({
@@ -327,10 +314,8 @@ export function useWorkflowBuilder() {
     });
   }
 
-  function openWorkflow(workflowId?: string) {
-    const workflow = workflowId
-      ? savedWorkflows.find((item) => item.id === workflowId)
-      : savedWorkflows[0];
+  function openWorkflow(workflowId: string) {
+    const workflow = savedWorkflows.find((item) => item.id === workflowId);
 
     if (workflow) {
       setActiveWorkflowId(workflow.id);
@@ -343,16 +328,42 @@ export function useWorkflowBuilder() {
     } else {
       setActiveWorkflowId(null);
       setWorkflowDraft(defaultWorkflowDraft);
-      setFields(appFields);
+      setFields([]);
       setSaveState({
         status: "idle",
-        message: "Using local starter workflow until the API has saved workflows.",
+        message: "",
       });
     }
 
     setWorkflowView("builder");
     setActiveStage("Fields");
   }
+
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      const payload = workflowPayload(workflowDraft, fields, "published");
+      return activeWorkflowId
+        ? await updateWorkflow(activeWorkflowId, payload)
+        : await createWorkflow(payload);
+    },
+    onSuccess: (savedWorkflow) => {
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+      setActiveWorkflowId(savedWorkflow.id);
+      setSaveState({
+        status: "saved",
+        message: `${savedWorkflow.name} is published and stored in the workflow API.`,
+      });
+      setToastMessage({ message: `${savedWorkflow.name} published successfully!`, type: "success" });
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : "Could not save workflow.";
+      setSaveState({
+        status: "error",
+        message: errorMessage,
+      });
+      setToastMessage({ message: errorMessage, type: "error" });
+    }
+  });
 
   async function publishWorkflow() {
     if (validationErrors.length > 0) {
@@ -368,37 +379,34 @@ export function useWorkflowBuilder() {
       message: "Saving workflow definition...",
     });
 
-    try {
-      const payload = workflowPayload(workflowDraft, fields, "published");
-      const savedWorkflow = activeWorkflowId
-        ? await updateWorkflow(activeWorkflowId, payload)
-        : await createWorkflow(payload);
-
-      setActiveWorkflowId(savedWorkflow.id);
-      setSavedWorkflows((currentWorkflows) => {
-        const existingIndex = currentWorkflows.findIndex((workflow) => workflow.id === savedWorkflow.id);
-        if (existingIndex === -1) {
-          return [savedWorkflow, ...currentWorkflows];
-        }
-
-        return currentWorkflows.map((workflow) => (
-          workflow.id === savedWorkflow.id ? savedWorkflow : workflow
-        ));
-      });
-      setSaveState({
-        status: "saved",
-        message: `${savedWorkflow.name} is published and stored in the workflow API.`,
-      });
-      void refreshWorkspaceResources();
-    } catch (error) {
-      setSaveState({
-        status: "error",
-        message: error instanceof Error ? error.message : "Could not save workflow.",
-      });
-    }
+    publishMutation.mutate();
   }
 
-  async function handleUploadDocument(event: FormEvent<HTMLFormElement>) {
+  const uploadDocumentMutation = useMutation({
+    mutationFn: (formData: FormData) => uploadDocument(formData),
+    onSuccess: (result, variables) => {
+      const file = variables.get("file") as File;
+      queryClient.invalidateQueries({ queryKey: ["documentRuns"] });
+      queryClient.invalidateQueries({ queryKey: ["records"] });
+      queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
+      
+      setUploadState({ 
+        status: "saved", 
+        message: `Successfully uploaded ${file.name}. It will be processed shortly.` 
+      });
+      setToastMessage({ message: `Document ${file.name} uploaded successfully!`, type: "success" });
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed.";
+      setUploadState({ 
+        status: "error", 
+        message: errorMessage 
+      });
+      setToastMessage({ message: errorMessage, type: "error" });
+    }
+  });
+
+  function handleUploadDocument(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
@@ -410,24 +418,11 @@ export function useWorkflowBuilder() {
 
     setUploadState({ status: "saving", message: "Uploading document..." });
     
-    try {
-      const result = await uploadDocument(formData);
-      setDocumentRuns((currentRuns) => [result.document_run, ...currentRuns]);
-      if (result.record) {
-        setRecords((currentRecords) => [result.record as ExtractedRecord, ...currentRecords]);
+    uploadDocumentMutation.mutate(formData, {
+      onSuccess: () => {
+        event.currentTarget.reset();
       }
-      setReviewStates((currentReviewStates) => [result.review_state, ...currentReviewStates]);
-      setUploadState({ 
-        status: "saved", 
-        message: `Successfully uploaded ${file.name}. It will be processed shortly.` 
-      });
-      event.currentTarget.reset();
-    } catch (error) {
-      setUploadState({ 
-        status: "error", 
-        message: error instanceof Error ? error.message : "Upload failed." 
-      });
-    }
+    });
   }
 
   function handleExportRecords() {
@@ -435,7 +430,26 @@ export function useWorkflowBuilder() {
     window.location.href = recordsCsvUrl(workflowId);
   }
 
-  async function handleTestWebhook() {
+  const testWebhookMutation = useMutation({
+    mutationFn: (workflowId: string) => testWebhook(workflowId),
+    onSuccess: (result) => {
+      setDeliveryState({
+        status: "saved",
+        message: `Webhook simulation logged as ${String(result.id || "sent")}.`,
+      });
+      setToastMessage({ message: "Webhook simulation sent successfully!", type: "success" });
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : "Could not test webhook.";
+      setDeliveryState({
+        status: "error",
+        message: errorMessage,
+      });
+      setToastMessage({ message: errorMessage, type: "error" });
+    }
+  });
+
+  function handleTestWebhook() {
     const workflowId = savedWorkflows[0]?.id;
     if (!workflowId) {
       setDeliveryState({
@@ -450,21 +464,47 @@ export function useWorkflowBuilder() {
       message: "Sending webhook simulation...",
     });
 
-    try {
-      const result = await testWebhook(workflowId);
-      setDeliveryState({
-        status: "saved",
-        message: `Webhook simulation logged as ${String(result.id || "sent")}.`,
-      });
-    } catch (error) {
-      setDeliveryState({
-        status: "error",
-        message: error instanceof Error ? error.message : "Could not test webhook.",
-      });
-    }
+    testWebhookMutation.mutate(workflowId);
   }
 
-  async function handleApproveNextReview() {
+  const approveReviewMutation = useMutation({
+    mutationFn: async (nextReview: ReviewState) => {
+      const updatedReview = await updateReviewState(nextReview.id, {
+        status: "approved",
+        decisions: [
+          ...nextReview.decisions,
+          {
+            action: "approved",
+            actor: "user",
+            at: new Date().toISOString(),
+          },
+        ],
+      });
+      if (nextReview.record_id) {
+        await updateRecord(nextReview.record_id, { status: "approved" });
+      }
+      return updatedReview;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
+      queryClient.invalidateQueries({ queryKey: ["records"] });
+      setReviewActionState({
+        status: "saved",
+        message: "Review item approved.",
+      });
+      setToastMessage({ message: "Review item approved successfully!", type: "success" });
+    },
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : "Could not approve review item.";
+      setReviewActionState({
+        status: "error",
+        message: errorMessage,
+      });
+      setToastMessage({ message: errorMessage, type: "error" });
+    }
+  });
+
+  function handleApproveNextReview() {
     const nextReview = reviewStates.find((review) => review.status === "open") || reviewStates[0];
     if (!nextReview) {
       setReviewActionState({
@@ -479,39 +519,7 @@ export function useWorkflowBuilder() {
       message: "Approving review item...",
     });
 
-    try {
-      const updatedReview = await updateReviewState(nextReview.id, {
-        status: "approved",
-        decisions: [
-          ...nextReview.decisions,
-          {
-            action: "approved",
-            actor: "user",
-            at: new Date().toISOString(),
-          },
-        ],
-      });
-      setReviewStates((currentReviews) => currentReviews.map((review) => (
-        review.id === updatedReview.id ? updatedReview : review
-      )));
-
-      if (nextReview.record_id) {
-        const updatedRecord = await updateRecord(nextReview.record_id, { status: "approved" });
-        setRecords((currentRecords) => currentRecords.map((record) => (
-          record.id === updatedRecord.id ? updatedRecord : record
-        )));
-      }
-
-      setReviewActionState({
-        status: "saved",
-        message: "Review item approved.",
-      });
-    } catch (error) {
-      setReviewActionState({
-        status: "error",
-        message: error instanceof Error ? error.message : "Could not approve review item.",
-      });
-    }
+    approveReviewMutation.mutate(nextReview);
   }
 
   function handleAddField(event: FormEvent<HTMLFormElement>) {
@@ -555,10 +563,12 @@ export function useWorkflowBuilder() {
     reviewActionState,
     runWorkflowId,
     setRunWorkflowId,
-    isSavingWorkflow: saveState.status === "saving",
-    isUploadingDocument: uploadState.status === "saving",
-    isTestingWebhook: deliveryState.status === "saving",
-    isApprovingReview: reviewActionState.status === "saving",
+    isSavingWorkflow: publishMutation.isPending,
+    isUploadingDocument: uploadDocumentMutation.isPending,
+    isTestingWebhook: testWebhookMutation.isPending,
+    isApprovingReview: approveReviewMutation.isPending,
+    toastMessage,
+    setToastMessage,
     isAddFieldOpen,
     setActiveStage,
     setWorkflowView,
