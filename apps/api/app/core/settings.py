@@ -32,8 +32,32 @@ class AppSettings:
 
 
 def load_settings() -> AppSettings:
+    missing_vars = []
+
+    mongodb_uri = os.getenv("DOCFLOW_MONGODB_URI")
+    if not mongodb_uri:
+        missing_vars.append("DOCFLOW_MONGODB_URI")
+
+    s3_endpoint_url = os.getenv("DOCFLOW_S3_ENDPOINT_URL")
+    if not s3_endpoint_url:
+        missing_vars.append("DOCFLOW_S3_ENDPOINT_URL")
+
+    s3_access_key_id = os.getenv("DOCFLOW_S3_ACCESS_KEY_ID")
+    if not s3_access_key_id:
+        missing_vars.append("DOCFLOW_S3_ACCESS_KEY_ID")
+
+    s3_secret_access_key = os.getenv("DOCFLOW_S3_SECRET_ACCESS_KEY")
+    if not s3_secret_access_key:
+        missing_vars.append("DOCFLOW_S3_SECRET_ACCESS_KEY")
+
+    if missing_vars:
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(missing_vars)}. "
+            "Please ensure these are set in your environment or .env file."
+        )
+
     return AppSettings(
-        mongodb_uri=os.getenv("DOCFLOW_MONGODB_URI", "mongodb://localhost:27017"),
+        mongodb_uri=mongodb_uri,
         mongodb_database=os.getenv("DOCFLOW_MONGODB_DATABASE", "docflow"),
         mongodb_workflows_collection=os.getenv(
             "DOCFLOW_MONGODB_WORKFLOWS_COLLECTION",
@@ -60,8 +84,8 @@ def load_settings() -> AppSettings:
             "action_history",
         ),
         document_bucket=os.getenv("DOCFLOW_DOCUMENT_BUCKET", "docflow-documents"),
-        s3_endpoint_url=os.getenv("DOCFLOW_S3_ENDPOINT_URL"),
-        s3_access_key_id=os.getenv("DOCFLOW_S3_ACCESS_KEY_ID"),
-        s3_secret_access_key=os.getenv("DOCFLOW_S3_SECRET_ACCESS_KEY"),
+        s3_endpoint_url=s3_endpoint_url,
+        s3_access_key_id=s3_access_key_id,
+        s3_secret_access_key=s3_secret_access_key,
         s3_region=os.getenv("DOCFLOW_S3_REGION", "us-east-1"),
     )
