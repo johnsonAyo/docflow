@@ -41,8 +41,9 @@ Extract parties, dates, renewal/termination terms, payment terms, obligations, p
 
 - Backend: FastAPI
 - Frontend: React, TypeScript, Vite
-- Database: SQLite (configurable)
-- Storage: filesystem under `data/` (configurable)
+- Database: MongoDB for workflows, document runs, extracted records, review states, integration logs, and action history
+- Document storage: free S3-compatible object store such as MinIO for originals, page images, OCR text, evidence crops, and processed artifacts
+- Local filesystem storage: development fallback only
 - OCR: provider-configurable (Tesseract default)
 - Image preprocessing: OpenCV
 - AI/extraction: provider-configurable
@@ -102,15 +103,53 @@ The main screens should be:
 
 ## Current Build Focus
 
-The next build step is to reconcile the existing frontend draft with the Document OCR Engine direction.
+The landing page is in place and deployed. The first static application workflow shell now exists at `#/app`.
 
-Focus on:
+Current app UI includes:
 
-- professional product shell
-- workflow builder
-- demo mode for invoice and contract examples
-- review queue
-- records table
-- integration panel
+- sidebar navigation for Workflows, Runs, Review Queue, Records, and Integrations
+- contract intake workflow builder
+- workflow stages
+- field schema table
+- review rules
+- delivery actions
+- latest runs
+- evidence preview
+
+Next focus:
+
+- make workflow stages selectable
+- make fields editable
+- make review rules configurable
+- make delivery actions configurable
+- let users switch between document runs
+- wiring the frontend to the backend REST API (since backend models, MongoDB/MinIO storage, and routing are now fully configured)
+- designing and implementing the `OcrEngine` interface for extracting data from documents
 
 Avoid continuing the old school-only grading UI.
+
+## Frontend Code Style
+
+The following rules apply to the React/TypeScript frontend (apps/web):
+
+- **Single Responsibility Functions**: Keep functions small and named for one job. Extract validation, formatting, fetching, mapping, and rendering helpers when a function does more than one thing.
+- **Dumb Pages**: Keep page files mostly as view/composition files. They may call one or two high-level data functions at the top, but should never contain raw queries, request construction, API mapping loops, or business logic.
+- **Reusable Data Logic**: Put reusable server/data fetching logic in `lib/` or a feature-specific data module.
+- **Custom Hooks for State**: For client-side fetching, form behavior, derived UI state, browser APIs, validation, filtering, modals, local persistence, and other stateful flows, use custom hooks in a `hooks/` folder. Views/components should call hooks and render their returned state/actions without owning bulky logic.
+- **Clean Components**: Keep components clean: props in, UI out. Move arrays, option lists, validation messages, and complex constants out of JSX.
+- **Inline Tailwind**: Keep Tailwind styles inline inside `className`. Do not abstract utility class strings into external constant files.
+- **String Localization**: Keep short strings inline. Only move strings to localization/labels files if they are long descriptions or paragraphs that are longer than their variable references.
+- **Shared Types**: Use standard TypeScript types/interfaces for shared content shapes across the application.
+- **Meaningful Comments**: Use succinct comments only for non-obvious behavior. Avoid comments that restate the code.
+
+## Backend Code Style
+
+The following rules apply to the FastAPI Python backend (apps/api):
+
+- **Separation of Concerns**: Keep concerns separated by layer (`domain`, `services`, `infrastructure`, `api`, `core`).
+- **Single Responsibility Functions**: Keep functions small and named for one job. Extract validation, formatting, mapping, and core logic when a function does more than one thing.
+- **Structured Exceptions**: Use structured custom exceptions with machine-readable error codes and details rather than generic errors.
+- **Rate Limiting**: Apply IP-based rate limiting on sensitive or computationally expensive endpoints.
+- **Structured Telemetry**: Emit structured JSON telemetry logs for operational observability.
+- **Shared Types**: Use standard types/models (e.g., Pydantic models) for shared data shapes across the application.
+- **Meaningful Comments**: Use succinct comments only for non-obvious behavior. Avoid comments that restate the code.

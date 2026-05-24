@@ -7,7 +7,8 @@ Supported document types include invoices, contracts, admission forms, bills of 
 ## Stack
 
 - **API** — FastAPI (Python)
-- **Database** — SQLite (configurable)
+- **Metadata store** — MongoDB for workflows, document runs, records, review state, integration logs, and action history
+- **Document store** — MinIO or another S3-compatible object store for originals and processed artifacts
 - **Web** — React + TypeScript (Vite)
 
 ## Run The API
@@ -16,8 +17,8 @@ Supported document types include invoices, contracts, admission forms, bills of 
 cd apps/api
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+pip install -e .
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
 Health check:
@@ -25,6 +26,30 @@ Health check:
 ```bash
 curl http://localhost:8000/health
 ```
+
+Storage configuration:
+
+```bash
+export DOCFLOW_MONGODB_URI=mongodb://localhost:27017
+export DOCFLOW_MONGODB_DATABASE=docflow
+
+export DOCFLOW_S3_ENDPOINT_URL=http://localhost:9000
+export DOCFLOW_S3_ACCESS_KEY_ID=minioadmin
+export DOCFLOW_S3_SECRET_ACCESS_KEY=minioadmin
+export DOCFLOW_DOCUMENT_BUCKET=docflow-documents
+```
+
+MongoDB and MinIO are required runtime services. Tests can mock these
+boundaries, but the application does not use JSON or filesystem storage as a
+runtime fallback.
+
+Local MongoDB and MinIO can be started with:
+
+```bash
+docker compose up -d mongodb minio
+```
+
+MinIO console: `http://localhost:9001` with `minioadmin` / `minioadmin`.
 
 ## Run The Web App
 
@@ -62,8 +87,8 @@ document-ocr-engine/
     api/          # FastAPI backend
     web/          # React + TypeScript frontend
   data/
-    uploads/      # uploaded PDFs and images
-    processed/    # OCR outputs and parsed documents
+    uploads/      # local scratch space before object-store write, if needed
+    processed/    # local scratch space during processing, if needed
     demo/         # sample demo inputs
   docs/
     milestones.md
@@ -84,4 +109,4 @@ Document OCR Engine should look and feel like serious business operations softwa
 
 Authoritative project context:
 
-`/Users/johnsonafuye/Desktop/Second Brain/Projects/document-ocr-engine.md`
+`/Users/johnsonafuye/Desktop/Second Brain/Projects/Document OCR Engine/docflow.md`
