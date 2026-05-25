@@ -1,9 +1,13 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
 DATA_DIR = ROOT_DIR / "data"
+
+# Load environment variables from .env in project root
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 
 def env_bool(name: str, default: bool) -> bool:

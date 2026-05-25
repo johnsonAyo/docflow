@@ -90,6 +90,7 @@ app.include_router(integrations.router, prefix="/api/v1")
 
 
 @app.get("/health")
+@app.head("/health")
 def health_check(request: Request) -> dict[str, object]:
     settings = app_settings(request.app)
     return {
