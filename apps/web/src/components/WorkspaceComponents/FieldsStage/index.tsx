@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
-import { DeleteIconButton } from "@/components/WorkspaceComponents/components/DeleteIconButton";
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { DeleteIconButton } from "@/components/ui/DeleteIconButton";
+import { builderLabels } from "../WorkflowBuilder/labels";
 import { AppField, WorkflowStage } from "@/types";
 
 type FieldsStageProps = {
@@ -15,18 +15,18 @@ export function FieldsStage({ fields, onAddField, onChangeStage, onDeleteField }
     <>
       <div className="builder-title-row">
         <div>
-          <p className="app-kicker">{workspaceComponentsLabels.builder.stages.fields.kicker}</p>
-          <h2>{workspaceComponentsLabels.builder.stages.fields.title}</h2>
+          <p className="app-kicker">{builderLabels.stages.fields.kicker}</p>
+          <h2>{builderLabels.stages.fields.title}</h2>
         </div>
         <button className="app-secondary-action compact" type="button" onClick={onAddField}>
           <Plus size={15} aria-hidden="true" />
-          {workspaceComponentsLabels.builder.stages.fields.action}
+          {builderLabels.stages.fields.action}
         </button>
       </div>
 
       <div className="schema-table" role="table" aria-label="Extraction schema">
         <div className="schema-row schema-head" role="row">
-          {workspaceComponentsLabels.builder.stages.fields.tableHeaders.map((header) => (
+          {builderLabels.stages.fields.tableHeaders.map((header) => (
             <span key={header}>{header}</span>
           ))}
         </div>

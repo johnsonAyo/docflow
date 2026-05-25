@@ -1,4 +1,4 @@
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { builderLabels } from "../WorkflowBuilder/labels";
 import { WorkflowSaveState } from "@/types";
 
 type WorkflowInspectorProps = {
@@ -19,13 +19,13 @@ export function WorkflowInspector({
   return (
     <aside className="app-inspector" aria-label="Workflow inspector">
       <div className="inspector-card status-card">
-        <span>{workspaceComponentsLabels.builder.inspector.status.title}</span>
-        <strong>{workspaceComponentsLabels.builder.inspector.status.state}</strong>
-        <p>{workspaceComponentsLabels.builder.inspector.status.description(4, fieldCount, ruleCount)}</p>
+        <span>{builderLabels.inspector.status.title}</span>
+        <strong>{builderLabels.inspector.status.state}</strong>
+        <p>{builderLabels.inspector.status.description(4, fieldCount, ruleCount)}</p>
         <small data-save-state={saveState.status}>{saveState.message}</small>
       </div>
       {validationErrors.length > 0 ? <ValidationCard errors={validationErrors} /> : null}
-      <PlaceholderCard title={workspaceComponentsLabels.builder.inspector.latestRun.title}>
+      <PlaceholderCard title={builderLabels.inspector.latestRun.title}>
         Runs will appear here once this workflow is published and documents are uploaded.
       </PlaceholderCard>
       <div className="inspector-card config-card">
@@ -33,7 +33,7 @@ export function WorkflowInspector({
         <pre>{configPreview}</pre>
       </div>
       <div className="inspector-card evidence-card">
-        <span>{workspaceComponentsLabels.builder.inspector.evidence.title}</span>
+        <span>{builderLabels.inspector.evidence.title}</span>
         <EmptyPreview className="evidence-document">Upload a document to preview the text and visual extraction layout.</EmptyPreview>
         <EmptyPreview className="extraction-result">Extracted fields and confidence scores will appear here.</EmptyPreview>
       </div>

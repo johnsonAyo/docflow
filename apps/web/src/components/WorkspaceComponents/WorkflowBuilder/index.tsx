@@ -1,9 +1,9 @@
-import { DeliveryStage } from "@/components/WorkspaceComponents/components/DeliveryStage";
-import { DocumentStage } from "@/components/WorkspaceComponents/components/DocumentStage";
-import { FieldsStage } from "@/components/WorkspaceComponents/components/FieldsStage";
-import { ReviewStage } from "@/components/WorkspaceComponents/components/ReviewStage";
-import { WorkflowInspector } from "@/components/WorkspaceComponents/components/WorkflowInspector";
-import { workflowStages } from "@/components/WorkspaceComponents/labels";
+import { DeliveryStage } from "@/components/WorkspaceComponents/DeliveryStage";
+import { DocumentStage } from "@/components/WorkspaceComponents/DocumentStage";
+import { FieldsStage } from "@/components/WorkspaceComponents/FieldsStage";
+import { ReviewStage } from "@/components/WorkspaceComponents/ReviewStage";
+import { WorkflowInspector } from "@/components/WorkspaceComponents/WorkflowInspector";
+import { workflowStages } from "@/components/WorkspaceComponents/constants/labels";
 import { AppField, WorkflowDraft, WorkflowSaveState, WorkflowStage } from "@/types";
 
 type WorkflowBuilderProps = {

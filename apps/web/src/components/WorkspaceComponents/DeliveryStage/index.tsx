@@ -1,5 +1,5 @@
-import { DeleteIconButton } from "@/components/WorkspaceComponents/components/DeleteIconButton";
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { DeleteIconButton } from "@/components/ui/DeleteIconButton";
+import { builderLabels } from "../WorkflowBuilder/labels";
 import { describeDeliveryAction, readable } from "@/lib/workflowItemDescriptions";
 import { WorkflowDeliveryAction } from "@/types";
 
@@ -13,8 +13,8 @@ export function DeliveryStage({ deliveryActions, onDeleteAction }: DeliveryStage
     <>
       <div className="builder-title-row">
         <div>
-          <p className="app-kicker">{workspaceComponentsLabels.builder.stages.delivery.kicker}</p>
-          <h2>{workspaceComponentsLabels.builder.stages.delivery.title}</h2>
+          <p className="app-kicker">{builderLabels.stages.delivery.kicker}</p>
+          <h2>{builderLabels.stages.delivery.title}</h2>
         </div>
       </div>
 

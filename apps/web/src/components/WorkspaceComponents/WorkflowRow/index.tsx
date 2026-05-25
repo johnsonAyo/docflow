@@ -1,7 +1,7 @@
 import { Pencil } from "lucide-react";
 import { type MouseEvent } from "react";
-import { DeleteIconButton } from "@/components/WorkspaceComponents/components/DeleteIconButton";
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { DeleteIconButton } from "@/components/ui/DeleteIconButton";
+import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/constants/labels";
 
 type WorkflowRowProps = {
   documents: string;

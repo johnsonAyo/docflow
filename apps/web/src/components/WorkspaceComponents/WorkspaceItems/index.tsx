@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { WorkspaceItem } from "@/types";
-import { WorkspaceSectionTitle } from "@/components/WorkspaceComponents/components/workspaceSectionTypes";
+import { WorkspaceSectionTitle } from "@/components/WorkspaceComponents/WorkspaceSectionView/workspaceSectionTypes";
 
 export function EmptyWorkspaceState({ title }: { title: WorkspaceSectionTitle }) {
   return (

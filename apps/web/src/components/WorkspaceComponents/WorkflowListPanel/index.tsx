@@ -1,5 +1,5 @@
-import { WorkflowRow } from "@/components/WorkspaceComponents/components/WorkflowRow";
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { WorkflowRow } from "@/components/WorkspaceComponents/WorkflowRow";
+import { overviewLabels } from "../WorkflowOverview/labels";
 import { WorkflowDefinition } from "@/types";
 
 type WorkflowListPanelProps = {
@@ -21,8 +21,8 @@ export function WorkflowListPanel({
     <section className="workflow-list-panel" aria-labelledby="published-workflows-title">
       <div className="builder-title-row">
         <div>
-          <p className="app-kicker">{workspaceComponentsLabels.overview.publishedWorkflows.kicker}</p>
-          <h2 id="published-workflows-title">{workspaceComponentsLabels.overview.publishedWorkflows.title}</h2>
+          <p className="app-kicker">{overviewLabels.publishedWorkflows.kicker}</p>
+          <h2 id="published-workflows-title">{overviewLabels.publishedWorkflows.title}</h2>
         </div>
       </div>
       <div className="published-workflow-list">

@@ -1,8 +1,8 @@
-import { workspaceSectionContent } from "@/components/WorkspaceComponents/labels";
-import { DocumentUploadPanel } from "@/components/WorkspaceComponents/components/DocumentUploadPanel";
-import { WorkspaceSectionActions } from "@/components/WorkspaceComponents/components/WorkspaceSectionActions";
-import { EmptyWorkspaceState, WorkspaceItems } from "@/components/WorkspaceComponents/components/WorkspaceItems";
-import { WorkspaceSectionViewProps } from "@/components/WorkspaceComponents/components/workspaceSectionTypes";
+import { workspaceSectionContent } from "./labels";
+import { DocumentUploadPanel } from "@/components/WorkspaceComponents/DocumentUploadPanel";
+import { WorkspaceSectionActions } from "@/components/WorkspaceComponents/WorkspaceSectionActions";
+import { EmptyWorkspaceState, WorkspaceItems } from "@/components/WorkspaceComponents/WorkspaceItems";
+import { WorkspaceSectionViewProps } from "@/components/WorkspaceComponents/WorkspaceSectionView/workspaceSectionTypes";
 
 export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
   const content = workspaceSectionContent[props.title];

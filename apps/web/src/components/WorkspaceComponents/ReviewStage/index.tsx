@@ -1,5 +1,5 @@
-import { DeleteIconButton } from "@/components/WorkspaceComponents/components/DeleteIconButton";
-import { workspaceComponentsLabels } from "@/components/WorkspaceComponents/labels";
+import { DeleteIconButton } from "@/components/ui/DeleteIconButton";
+import { builderLabels } from "../WorkflowBuilder/labels";
 import { describeReviewRule, readable } from "@/lib/workflowItemDescriptions";
 import { WorkflowRule, WorkflowStage } from "@/types";
 
@@ -14,8 +14,8 @@ export function ReviewStage({ onChangeStage, onDeleteRule, reviewRules }: Review
     <>
       <div className="builder-title-row">
         <div>
-          <p className="app-kicker">{workspaceComponentsLabels.builder.stages.review.kicker}</p>
-          <h2>{workspaceComponentsLabels.builder.stages.review.title}</h2>
+          <p className="app-kicker">{builderLabels.stages.review.kicker}</p>
+          <h2>{builderLabels.stages.review.title}</h2>
         </div>
       </div>
 

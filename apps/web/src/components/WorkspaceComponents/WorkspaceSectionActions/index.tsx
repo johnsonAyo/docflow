@@ -1,6 +1,6 @@
 import { CheckCircle2, Download, Send, Upload } from "lucide-react";
-import { workspaceSectionContent } from "@/components/WorkspaceComponents/labels";
-import { WorkspaceSectionTitle } from "@/components/WorkspaceComponents/components/workspaceSectionTypes";
+import { workspaceSectionContent } from "@/components/WorkspaceComponents/constants/labels";
+import { WorkspaceSectionTitle } from "@/components/WorkspaceComponents/WorkspaceSectionView/workspaceSectionTypes";
 
 type WorkspaceSectionActionsProps = {
   isApprovingReview: boolean;
