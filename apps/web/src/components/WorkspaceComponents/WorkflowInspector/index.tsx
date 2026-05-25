@@ -30,7 +30,6 @@ export function WorkflowInspector({
         <div className="inspector-heading"><span>Advanced config</span><b>JSON</b></div>
         <pre>{configPreview}</pre>
       </div>
-
     </aside>
   );
 }
@@ -40,23 +39,6 @@ function ValidationCard({ errors }: { errors: string[] }) {
     <div className="inspector-card validation-card">
       <span>Validation</span>
       <ul>{errors.map((error) => <li key={error}>{error}</li>)}</ul>
-    </div>
-  );
-}
-
-function PlaceholderCard({ children, title }: { children: React.ReactNode; title: string }) {
-  return (
-    <div className="inspector-card">
-      <div className="inspector-heading"><span>{title}</span></div>
-      <div className="run-list"><EmptyPreview>{children}</EmptyPreview></div>
-    </div>
-  );
-}
-
-function EmptyPreview({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={className} style={{ border: "1px dashed var(--line-strong)", color: "var(--muted)", fontStyle: "italic", fontSize: "0.85rem", background: "transparent", textAlign: "center", padding: "24px 16px", borderRadius: "var(--r-sm)" }}>
-      {children}
     </div>
   );
 }

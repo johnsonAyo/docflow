@@ -49,6 +49,11 @@ class S3DocumentStore(DocumentStore):
             "size_bytes": len(body),
         }
 
+    def get_object(self, object_key: str) -> bytes:
+        key = safe_object_key(object_key)
+        response = self.client.get_object(Bucket=self.bucket, Key=key)
+        return response["Body"].read()
+
     def _ensure_bucket(self) -> None:
         try:
             self.client.head_bucket(Bucket=self.bucket)

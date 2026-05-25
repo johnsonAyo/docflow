@@ -1,4 +1,5 @@
 import { WorkflowBuilder, WorkflowOverview, WorkspaceSectionView } from "@/components/WorkspaceComponents";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { WorkspaceModel } from "@/pages/WorkspacePage/types";
 
 export function WorkspaceContent({ workspace }: { workspace: WorkspaceModel }) {
@@ -6,13 +7,13 @@ export function WorkspaceContent({ workspace }: { workspace: WorkspaceModel }) {
 
   if (navigation.activeSection === "Workflows" && navigation.workflowView === "overview") {
     return (
-      <WorkflowOverview
-        onCreateWorkflow={actions.createDraftWorkflow}
-        onDeleteWorkflow={actions.deleteWorkflow}
-        onOpenWorkflow={actions.openWorkflow}
+        <WorkflowOverview
+          onCreateWorkflow={actions.createDraftWorkflow}
+          onDeleteWorkflow={actions.deleteWorkflow}
+          onOpenWorkflow={actions.openWorkflow}
         onRunWorkflow={(id) => {
           actions.setRunWorkflowId(id);
-          actions.changeSection("Runs");
+          actions.changeSection("Process documents");
         }}
         savedWorkflows={overview.savedWorkflows}
         isDeletingWorkflow={sections.isDeletingWorkflow}
@@ -22,22 +23,20 @@ export function WorkspaceContent({ workspace }: { workspace: WorkspaceModel }) {
 
   if (navigation.isWorkflowBuilder) {
     return (
-      <WorkflowBuilder
-        activeStage={builder.activeStage}
-        fields={builder.fields}
-        workflowDraft={builder.workflowDraft}
-        configPreview={builder.configPreview}
-        validationErrors={builder.validationErrors}
-        saveState={builder.saveState}
-        onAddField={workspace.modals.addField.open}
-        onChangeStage={actions.changeStage}
-        onDeleteDeliveryAction={actions.deleteDeliveryAction}
-        onDeleteField={actions.deleteField}
-        onDeleteReviewRule={actions.deleteReviewRule}
-        onWorkflowDraftChange={actions.updateWorkflowDraft}
-        onPublishWorkflow={actions.publishWorkflow}
-        isPublishing={builder.isSaving}
-      />
+        <WorkflowBuilder
+          activeStage={builder.activeStage}
+          fields={builder.fields}
+          workflowDraft={builder.workflowDraft}
+          configPreview={builder.configPreview}
+          validationErrors={builder.validationErrors}
+          saveState={builder.saveState}
+          onAddField={workspace.modals.addField.open}
+          onChangeStage={actions.changeStage}
+          onDeleteField={actions.deleteField}
+          onWorkflowDraftChange={actions.updateWorkflowDraft}
+          onPublishWorkflow={actions.publishWorkflow}
+          isPublishing={builder.isSaving}
+        />
     );
   }
 
@@ -46,22 +45,25 @@ export function WorkspaceContent({ workspace }: { workspace: WorkspaceModel }) {
   }
 
   return (
-    <WorkspaceSectionView
-      title={navigation.activeSection}
-      savedWorkflows={overview.savedWorkflows}
-      uploadState={sections.uploadState}
-      deliveryState={sections.deliveryState}
-      reviewActionState={sections.reviewActionState}
-      items={sections.items[navigation.activeSection]}
-      isUploadingDocument={sections.isUploadingDocument}
-      isTestingWebhook={sections.isTestingWebhook}
-      isApprovingReview={sections.isApprovingReview}
-      runWorkflowId={sections.runWorkflowId}
-      setRunWorkflowId={actions.setRunWorkflowId}
-      onUploadDocument={actions.uploadDocument}
-      onExportRecords={actions.exportRecords}
-      onTestWebhook={actions.testWebhook}
-      onApproveNextReview={actions.approveNextReview}
-    />
+    <ErrorBoundary>
+      <WorkspaceSectionView
+        title={navigation.activeSection}
+        savedWorkflows={overview.savedWorkflows}
+        uploadState={sections.uploadState}
+        deliveryState={sections.deliveryState}
+        reviewActionState={sections.reviewActionState}
+        items={sections.items[navigation.activeSection]}
+        isUploadingDocument={sections.isUploadingDocument}
+        isTestingWebhook={sections.isTestingWebhook}
+        isApprovingReview={sections.isApprovingReview}
+        runWorkflowId={sections.runWorkflowId}
+        setRunWorkflowId={actions.setRunWorkflowId}
+        onUploadDocument={actions.uploadDocument}
+        onExportRecords={actions.exportRecords}
+        onTestWebhook={actions.testWebhook}
+        onOpenReviewItem={actions.openReviewItem}
+        queue={workspace.queue}
+      />
+    </ErrorBoundary>
   );
 }

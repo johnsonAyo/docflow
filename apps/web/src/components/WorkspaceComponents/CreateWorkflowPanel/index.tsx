@@ -16,6 +16,14 @@ export function CreateWorkflowPanel({ onCreateWorkflow }: CreateWorkflowPanelPro
           {overviewLabels.createWorkflow.fields.name}
           <input name="name" type="text" placeholder="e.g. New supplier packet" required />
         </label>
+        <label>
+          {overviewLabels.createWorkflow.fields.type}
+          <select name="documentType" defaultValue={overviewLabels.createWorkflow.fields.typeOptions[1]}>
+            {overviewLabels.createWorkflow.fields.typeOptions.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
+          </select>
+        </label>
         <button className="app-primary-action" type="submit">
           <Plus size={16} aria-hidden="true" />
           {overviewLabels.createWorkflow.action}
@@ -31,5 +39,5 @@ function submitWorkflow(
 ) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
-  onCreateWorkflow(String(formData.get("name") || ""), "");
+  onCreateWorkflow(String(formData.get("name") || ""), String(formData.get("documentType") || ""));
 }

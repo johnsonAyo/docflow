@@ -1,5 +1,5 @@
 import { type FormEvent } from "react";
-import { AppSection, ReviewState, WorkflowSaveState } from "@/types";
+import { AppSection, WorkflowSaveState } from "@/types";
 
 type DraftActions = {
   createDraftWorkflow: (name?: string, documentType?: string) => void;
@@ -12,8 +12,7 @@ type DraftState = {
 };
 
 type WorkflowMutations = {
-  approveReviewMutation: { mutate: (review: ReviewState) => void };
-  nextReview: ReviewState | undefined;
+  approveReviewItem: (reviewId: string) => void;
   publishMutation: { mutate: () => void };
   uploadDocumentMutation: { mutate: (formData: FormData, options: { onSuccess: () => void }) => void };
 };
@@ -22,7 +21,6 @@ type WorkflowBuilderActionOptions = {
   draftActions: DraftActions;
   draftState: DraftState;
   setActiveSection: (section: AppSection) => void;
-  setReviewActionState: (state: WorkflowSaveState) => void;
   setUploadState: (state: WorkflowSaveState) => void;
   setWorkflowView: (view: "overview" | "builder") => void;
   workflowMutations: WorkflowMutations;
@@ -32,14 +30,13 @@ export function useWorkflowBuilderActions({
   draftActions,
   draftState,
   setActiveSection,
-  setReviewActionState,
   setUploadState,
   setWorkflowView,
   workflowMutations,
 }: WorkflowBuilderActionOptions) {
   function changeSection(section: AppSection) {
     setActiveSection(section);
-    if (section !== "Workflows") setWorkflowView("overview");
+    setWorkflowView("overview");
   }
 
   function createDraftWorkflow(name = "", documentType = "") {
@@ -78,15 +75,5 @@ export function useWorkflowBuilderActions({
     });
   }
 
-  function approveNextReview() {
-    if (!workflowMutations.nextReview) {
-      setReviewActionState({ status: "idle", message: "There are no review items to approve." });
-      return;
-    }
-
-    setReviewActionState({ status: "saving", message: "Approving review item..." });
-    workflowMutations.approveReviewMutation.mutate(workflowMutations.nextReview);
-  }
-
-  return { approveNextReview, changeSection, createDraftWorkflow, openWorkflow, publishWorkflow, uploadDocument };
+  return { changeSection, createDraftWorkflow, openWorkflow, publishWorkflow, uploadDocument };
 }

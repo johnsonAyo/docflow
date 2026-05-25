@@ -145,24 +145,18 @@ export const publishedWorkflows: PublishedWorkflow[] = [
 export const workflowStages: WorkflowStage[] = ["Document", "Fields"];
 
 export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, WorkspaceSectionContent> = {
-  Runs: {
+  "Process documents": {
     kicker: "Document runs",
     title: "Track every upload from intake to record creation",
     description: "Runs will become the operational ledger for uploads, OCR, extraction, review routing, and processing errors.",
-    actions: [
-      { label: "Upload documents", intent: "primary" },
-      { label: "View runs", intent: "secondary" },
-    ],
+    actions: [],
     items: []
   },
   "Review queue": {
     kicker: "Human review",
     title: "Clear exceptions with source evidence beside each field",
     description: "The review queue should show document evidence, confidence, validation issues, and edit or approval controls.",
-    actions: [
-      { label: "Approve next item", intent: "primary" },
-      { label: "Filter issues", intent: "secondary" },
-    ],
+    actions: [],
     items: []
   },
   Records: {

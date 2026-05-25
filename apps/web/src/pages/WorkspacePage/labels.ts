@@ -2,7 +2,7 @@ import { Waypoints, FileSearch, CircleAlert, Table2, PlugZap } from "lucide-reac
 
 export const navItems = [
   { label: "Workflows" as const, Icon: Waypoints },
-  { label: "Runs" as const, Icon: FileSearch },
+  { label: "Process documents" as const, Icon: FileSearch },
   { label: "Review queue" as const, Icon: CircleAlert },
   { label: "Records" as const, Icon: Table2 },
   { label: "Integrations" as const, Icon: PlugZap },

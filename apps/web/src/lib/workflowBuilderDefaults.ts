@@ -84,15 +84,3 @@ export function workflowPayload(
     config: workflowConfig(draft, fields),
   };
 }
-
-function cloneReviewRules() {
-  return reviewRules.map((rule) => ({
-    ...rule,
-    fields: rule.fields ? [...rule.fields] : undefined,
-    signals: rule.signals ? [...rule.signals] : undefined,
-  }));
-}
-
-function cloneDeliveryActions() {
-  return deliveryActions.map((action) => ({ ...action }));
-}

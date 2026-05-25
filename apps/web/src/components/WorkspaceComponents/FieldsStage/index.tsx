@@ -1,18 +1,17 @@
 import { Plus } from "lucide-react";
 import { DeleteIconButton } from "@/components/ui/DeleteIconButton";
 import { builderLabels } from "../WorkflowBuilder/labels";
-import { AppField, WorkflowStage } from "@/types";
+import { AppField } from "@/types";
 
 type FieldsStageProps = {
   fields: AppField[];
   onAddField: () => void;
-  onChangeStage: (stage: WorkflowStage) => void;
   onDeleteField: (index: number) => void;
   onPublishWorkflow: () => void;
   isPublishing: boolean;
 };
 
-export function FieldsStage({ fields, onAddField, onChangeStage, onDeleteField, onPublishWorkflow, isPublishing }: FieldsStageProps) {
+export function FieldsStage({ fields, onAddField, onDeleteField, onPublishWorkflow, isPublishing }: FieldsStageProps) {
   return (
     <>
       <div className="builder-title-row">

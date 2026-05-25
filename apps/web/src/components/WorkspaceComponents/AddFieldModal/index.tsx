@@ -1,5 +1,6 @@
 import { type FormEvent } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
+import { ModalShell } from "@/components/WorkspaceComponents/ModalShell";
 import { addFieldModalLabels } from "./labels";
 
 type AddFieldModalProps = {
@@ -9,18 +10,12 @@ type AddFieldModalProps = {
 
 export function AddFieldModal({ onClose, onSubmit }: AddFieldModalProps) {
   return (
-    <div className="modal-backdrop" role="presentation">
-      <section className="field-modal" role="dialog" aria-modal="true" aria-labelledby="field-modal-title">
-        <div className="modal-header">
-          <div>
-            <p className="app-kicker">{addFieldModalLabels.kicker}</p>
-            <h2 id="field-modal-title">{addFieldModalLabels.title}</h2>
-          </div>
-          <button className="icon-action" type="button" aria-label={addFieldModalLabels.closeAria} onClick={onClose}>
-            <X size={17} aria-hidden="true" />
-          </button>
-        </div>
-
+    <ModalShell
+      closeAria={addFieldModalLabels.closeAria}
+      kicker={addFieldModalLabels.kicker}
+      title={addFieldModalLabels.title}
+      onClose={onClose}
+    >
         <form className="field-modal-form" onSubmit={onSubmit}>
           <label>
             {addFieldModalLabels.fields.name.label}
@@ -58,8 +53,7 @@ export function AddFieldModal({ onClose, onSubmit }: AddFieldModalProps) {
             </button>
           </div>
         </form>
-      </section>
-    </div>
+    </ModalShell>
   );
 }
 

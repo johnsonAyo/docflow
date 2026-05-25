@@ -13,9 +13,11 @@ export function buildWorkspaceItems(
   records: ExtractedRecord[],
   workflows: WorkflowDefinition[],
 ): Record<Exclude<AppSection, "Workflows">, WorkspaceItem[]> {
+  const activeRuns = documentRuns.filter(isActiveRun);
+  const openReviews = reviewStates.filter((review) => review.status === "open");
   return {
-    Runs: documentRuns.map((run) => mapRunItem(run, workflows)),
-    "Review queue": reviewStates.map((review) => mapReviewItem(review, documentRuns, workflows)),
+    "Process documents": activeRuns.map((run) => mapRunItem(run, workflows)),
+    "Review queue": openReviews.map((review) => mapReviewItem(review, documentRuns, workflows)),
     Records: records.map((record) => mapRecordItem(record, documentRuns, workflows)),
     Integrations: [],
   };
@@ -24,6 +26,7 @@ export function buildWorkspaceItems(
 function mapRunItem(run: DocumentRun, workflows: WorkflowDefinition[]): WorkspaceItem {
   const processing = run.metadata.processing as Record<string, unknown> | undefined;
   return {
+    id: run.id,
     title: run.document_name,
     meta: `${run.document_type} · ${workflowName(workflows, run.workflow_id)}`,
     status: displayStatus(run.status),
@@ -35,6 +38,7 @@ function mapReviewItem(review: ReviewState, runs: DocumentRun[], workflows: Work
   const run = runs.find((item) => item.id === review.document_run_id);
   const issue = review.issues[0] || {};
   return {
+    id: review.id,
     title: String(issue.field || run?.document_name || "Review item"),
     meta: `${run?.document_name || "Document"} · ${workflowName(workflows, review.workflow_id)}`,
     status: review.status === "open" ? "Needs review" : displayStatus(review.status),
@@ -46,6 +50,7 @@ function mapRecordItem(record: ExtractedRecord, runs: DocumentRun[], workflows: 
   const run = runs.find((item) => item.id === record.document_run_id);
   const confidence = record.confidence === null ? "No confidence" : `${Math.round(record.confidence * 100)}% confidence`;
   return {
+    id: record.id,
     title: run?.document_name || record.id,
     meta: `${workflowName(workflows, record.workflow_id)} · ${confidence}`,
     status: displayStatus(record.status),
@@ -64,4 +69,8 @@ function workflowName(workflows: WorkflowDefinition[], workflowId: string) {
 function fieldDisplay(fields: Array<Record<string, unknown>>) {
   if (fields.length === 0) return "No extracted fields yet.";
   return fields.slice(0, 3).map((field) => `${String(field.name || "Field")}: ${String(field.value || "Pending")}`).join(" · ");
+}
+
+function isActiveRun(run: DocumentRun) {
+  return run.status === "uploaded" || run.status === "processing" || run.status === "failed";
 }

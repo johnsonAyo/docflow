@@ -3,7 +3,6 @@ import {
   approveReview,
   exportRecords,
   invalidateDocumentData,
-  nextOpenReview,
   runWebhookTest,
   saveWorkflow,
   showStateError,
@@ -87,9 +86,18 @@ export function useWorkflowMutations({
 
   return {
     approveReviewMutation,
+    approveReviewItem: (reviewId: string) => {
+      const review = reviewStates.find((item) => item.id === reviewId);
+      if (!review) {
+        setReviewActionState({ status: "error", message: "Review item no longer exists." });
+        return;
+      }
+
+      setReviewActionState({ status: "saving", message: `Approving ${review.issues[0]?.field || "review item"}...` });
+      approveReviewMutation.mutate(review);
+    },
     handleExportRecords: () => exportRecords(savedWorkflows),
     handleTestWebhook: () => runWebhookTest(savedWorkflows, setDeliveryState, testWebhookMutation.mutate),
-    nextReview: nextOpenReview(reviewStates),
     publishMutation,
     testWebhookMutation,
     uploadDocumentMutation,

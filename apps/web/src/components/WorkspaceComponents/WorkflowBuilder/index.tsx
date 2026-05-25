@@ -13,9 +13,7 @@ type WorkflowBuilderProps = {
   saveState: WorkflowSaveState;
   onAddField: () => void;
   onChangeStage: (stage: WorkflowStage) => void;
-  onDeleteDeliveryAction: (index: number) => void;
   onDeleteField: (index: number) => void;
-  onDeleteReviewRule: (index: number) => void;
   onWorkflowDraftChange: (updates: Partial<WorkflowDraft>) => void;
   onPublishWorkflow: () => void;
   isPublishing: boolean;
@@ -30,9 +28,7 @@ export function WorkflowBuilder({
   saveState,
   onAddField,
   onChangeStage,
-  onDeleteDeliveryAction,
   onDeleteField,
-  onDeleteReviewRule,
   onWorkflowDraftChange,
   onPublishWorkflow,
   isPublishing,
@@ -66,7 +62,6 @@ export function WorkflowBuilder({
             <FieldsStage
               fields={fields}
               onAddField={onAddField}
-              onChangeStage={onChangeStage}
               onDeleteField={onDeleteField}
               onPublishWorkflow={onPublishWorkflow}
               isPublishing={isPublishing}

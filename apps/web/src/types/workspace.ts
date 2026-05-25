@@ -6,7 +6,7 @@ export type AppRun = {
   owner: string;
 };
 
-export type AppSection = "Workflows" | "Runs" | "Review queue" | "Records" | "Integrations";
+export type AppSection = "Workflows" | "Process documents" | "Review queue" | "Records" | "Integrations";
 
 export type PublishedWorkflow = {
   name: string;
@@ -17,6 +17,7 @@ export type PublishedWorkflow = {
 };
 
 export type WorkspaceItem = {
+  id: string;
   title: string;
   meta: string;
   status: string;

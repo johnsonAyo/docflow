@@ -37,22 +37,40 @@ async def create_uploaded_document(
         artifact,
     )
     workflow = workflow_store.get_workflow(workflow_id)
-    processing = process_uploaded_document(
-        body=body,
-        filename=filename,
-        content_type=content_type,
+
+    try:
+        from app.worker import process_document_task
+    except ModuleNotFoundError:
+        processing = process_uploaded_document(
+            body=body,
+            filename=filename,
+            content_type=content_type,
+            workflow_id=workflow_id,
+            document_type=document_type,
+            document_run_id=document_run["id"],
+            workflow_config=workflow["config"] if workflow is not None else {},
+            settings=settings,
+            document_store=store,
+            records=resource_stores["records"],
+            review_states=resource_stores["review_states"],
+        )
+        return upload_response(document_run, resource_stores["document_runs"], artifact, processing)
+
+    process_document_task.delay(
+        document_run_id=document_run["id"],
         workflow_id=workflow_id,
         document_type=document_type,
-        document_run_id=document_run["id"],
-        workflow_config=workflow["config"] if workflow is not None else {},
-        settings=settings,
-        document_store=store,
-        records=resource_stores["records"],
-        review_states=resource_stores["review_states"],
+        filename=filename,
+        content_type=content_type,
+        artifact=artifact,
     )
-    return upload_response(
-        document_run, resource_stores["document_runs"], artifact, processing
-    )
+
+    return {
+        "document_run": document_run,
+        "artifact": artifact,
+        "record": None,
+        "review_state": None,
+    }
 
 
 def create_document_run(

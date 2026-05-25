@@ -15,6 +15,10 @@ class DocumentStore(ABC):
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    @abstractmethod
+    def get_object(self, object_key: str) -> bytes:
+        raise NotImplementedError
+
 
 def safe_object_key(object_key: str) -> str:
     normalized = str(PurePosixPath(object_key.strip("/")))

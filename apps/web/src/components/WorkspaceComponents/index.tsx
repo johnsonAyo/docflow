@@ -3,6 +3,7 @@ export { AppToast } from "@/components/ui/AppToast";
 export { DeliveryStage } from "@/components/WorkspaceComponents/DeliveryStage";
 export { DocumentStage } from "@/components/WorkspaceComponents/DocumentStage";
 export { FieldsStage } from "@/components/WorkspaceComponents/FieldsStage";
+export { ReviewItemModal } from "@/components/WorkspaceComponents/ReviewItemModal";
 export { ReviewStage } from "@/components/WorkspaceComponents/ReviewStage";
 export { WorkflowBuilder } from "@/components/WorkspaceComponents/WorkflowBuilder";
 export { WorkflowOverview } from "@/components/WorkspaceComponents/WorkflowOverview";

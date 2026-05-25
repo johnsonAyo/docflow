@@ -56,10 +56,20 @@ OCR and extraction use a provider boundary:
 - if Ollama is unavailable, the API falls back to the rule-based extractor and
   records a review issue
 
-Local MongoDB and MinIO can be started with:
+Local MongoDB, MinIO, and Redis can be started with:
 
 ```bash
-docker compose up -d mongodb minio
+docker compose up -d mongodb minio redis
+```
+
+MinIO console: `http://localhost:9001` with `minioadmin` / `minioadmin`.
+
+## Run the Celery Worker
+Background document processing is handled by Celery. Open a new terminal:
+```bash
+cd apps/api
+source .venv/bin/activate
+celery -A app.worker.celery_app worker --loglevel=info
 ```
 
 MinIO console: `http://localhost:9001` with `minioadmin` / `minioadmin`.

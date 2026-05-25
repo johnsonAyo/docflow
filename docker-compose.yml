@@ -20,6 +20,15 @@ services:
     volumes:
       - docflow-minio:/data
 
+  redis:
+    image: redis:7
+    container_name: docflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - docflow-redis:/data
+
 volumes:
   docflow-mongodb:
   docflow-minio:
+  docflow-redis:

@@ -33,6 +33,7 @@ class AppSettings:
     ollama_base_url: str
     ollama_model: str
     ollama_timeout_seconds: float
+    redis_url: str
 
 
 def load_settings() -> AppSettings:
@@ -96,4 +97,5 @@ def load_settings() -> AppSettings:
         ollama_base_url=os.getenv("DOCFLOW_OLLAMA_BASE_URL", "http://localhost:11434"),
         ollama_model=os.getenv("DOCFLOW_OLLAMA_MODEL", "llama3.1:8b"),
         ollama_timeout_seconds=float(os.getenv("DOCFLOW_OLLAMA_TIMEOUT_SECONDS", "30")),
+        redis_url=os.getenv("DOCFLOW_REDIS_URL", "redis://localhost:6379/0"),
     )

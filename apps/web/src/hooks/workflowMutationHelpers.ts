@@ -58,19 +58,15 @@ export function runWebhookTest(
   testWebhook(workflowId);
 }
 
-export async function approveReview(nextReview: ReviewState) {
-  const updatedReview = await updateReviewState(nextReview.id, {
+export async function approveReview(review: ReviewState) {
+  const updatedReview = await updateReviewState(review.id, {
     status: "approved",
-    decisions: [...nextReview.decisions, { action: "approved", actor: "user", at: new Date().toISOString() }],
+    decisions: [...review.decisions, { action: "approved", actor: "user", at: new Date().toISOString() }],
   });
 
-  if (nextReview.record_id) {
-    await updateRecord(nextReview.record_id, { status: "approved" });
+  if (review.record_id) {
+    await updateRecord(review.record_id, { status: "approved" });
   }
 
   return updatedReview;
-}
-
-export function nextOpenReview(reviewStates: ReviewState[]) {
-  return reviewStates.find((review) => review.status === "open") || reviewStates[0];
 }

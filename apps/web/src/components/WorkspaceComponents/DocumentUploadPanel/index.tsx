@@ -1,48 +1,85 @@
-import { type FormEvent } from "react";
-import { Upload } from "lucide-react";
-import { WorkflowDefinition, WorkflowSaveState } from "@/types";
+import { type FormEvent, useState, useRef, useEffect } from "react";
+import { WorkflowDefinition } from "@/types";
+import { UploadJob } from "@/hooks/useUploadQueue";
+import { UploadQueueList } from "@/components/WorkspaceComponents/UploadQueueList";
 
 type DocumentUploadPanelProps = {
-  isUploadingDocument: boolean;
-  onUploadDocument: (event: FormEvent<HTMLFormElement>) => void;
+  queue: {
+    jobs: UploadJob[];
+    queueFiles: (files: File[], workflowId: string, documentType: string) => void;
+    removeJob: (id: string) => void;
+    clearCompleted: () => void;
+  };
   runWorkflowId: string;
   savedWorkflows: WorkflowDefinition[];
   setRunWorkflowId: (id: string) => void;
-  uploadState: WorkflowSaveState;
 };
 
 export function DocumentUploadPanel({
-  isUploadingDocument,
-  onUploadDocument,
+  queue,
   runWorkflowId,
   savedWorkflows,
   setRunWorkflowId,
-  uploadState,
 }: DocumentUploadPanelProps) {
+  const [hasFiles, setHasFiles] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectedWorkflow = savedWorkflows.find((workflow) => workflow.id === runWorkflowId) || null;
+
+  useEffect(() => {
+    if (!runWorkflowId && savedWorkflows.length > 0) {
+      setRunWorkflowId(savedWorkflows[0].id);
+    }
+  }, [runWorkflowId, savedWorkflows, setRunWorkflowId]);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (fileInputRef.current?.files && fileInputRef.current.files.length > 0) {
+      const files = Array.from(fileInputRef.current.files);
+      queue.queueFiles(files, runWorkflowId, selectedWorkflow?.document_type || "Document");
+      fileInputRef.current.value = "";
+      setHasFiles(false);
+    }
+  };
+
   return (
-    <form className="document-upload-panel" onSubmit={onUploadDocument}>
-      <div>
-        <p className="app-kicker">Upload documents</p>
-        <h3>Create a document run</h3>
-        <span data-save-state={uploadState.status}>{uploadState.message}</span>
-      </div>
-      <label>
-        Workflow
-        <select name="workflow_id" disabled={savedWorkflows.length === 0 || isUploadingDocument} value={runWorkflowId} onChange={(event) => setRunWorkflowId(event.target.value)}>
-          {savedWorkflows.length === 0 ? <option value="">Publish a workflow first</option> : null}
-          {savedWorkflows.map((workflow) => <option key={workflow.id} value={workflow.id}>{workflow.name}</option>)}
-        </select>
-      </label>
-      <label>
-        Document type
-        <select name="document_type" disabled={isUploadingDocument} defaultValue="Invoice">
-          <option>Invoice</option><option>Contract</option><option>Vendor form</option><option>Custom document</option>
-        </select>
-      </label>
-      <label>File<input name="file" type="file" accept="application/pdf,image/*" disabled={isUploadingDocument} /></label>
-      <button className="app-primary-action" type="submit" disabled={savedWorkflows.length === 0 || isUploadingDocument}>
-        <Upload size={16} aria-hidden="true" />{isUploadingDocument ? "Uploading..." : "Upload"}
-      </button>
-    </form>
+    <>
+      <form className="document-upload-panel" onSubmit={handleSubmit}>
+        <div>
+          <p className="app-kicker">Upload documents</p>
+          <h3>Create a document run</h3>
+        </div>
+        
+        <label>
+          Workflow
+          <select name="workflow_id" disabled={savedWorkflows.length === 0} value={runWorkflowId} onChange={(event) => setRunWorkflowId(event.target.value)}>
+            {savedWorkflows.length === 0 ? <option value="">Publish a workflow first</option> : null}
+            {savedWorkflows.map((workflow) => <option key={workflow.id} value={workflow.id}>{workflow.name}</option>)}
+          </select>
+        </label>
+        <div className="document-upload-meta">
+          <span>Document type</span>
+          <strong>{selectedWorkflow?.document_type || "Choose a workflow"}</strong>
+        </div>
+
+        <label>
+          File
+          <input 
+            ref={fileInputRef}
+            name="file" 
+            type="file" 
+            multiple 
+            accept="application/pdf,image/*" 
+            disabled={savedWorkflows.length === 0 || !runWorkflowId} 
+            onChange={(e) => setHasFiles(!!e.target.files && e.target.files.length > 0)}
+          />
+        </label>
+
+        <button className="app-primary-action" type="submit" disabled={savedWorkflows.length === 0 || !runWorkflowId || !hasFiles}>
+          Upload
+        </button>
+      </form>
+
+      <UploadQueueList queue={queue} />
+    </>
   );
 }

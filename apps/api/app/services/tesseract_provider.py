@@ -93,7 +93,7 @@ class TesseractOCRProvider:
             )
         except FileNotFoundError:
             return self._dependency_issue(
-                f"Tesseract command not found: {self.command}"
+                "OCR engine unavailable. Install Tesseract or update DOCFLOW_TESSERACT_COMMAND."
             )
         except subprocess.CalledProcessError as exc:
             return OcrResult(

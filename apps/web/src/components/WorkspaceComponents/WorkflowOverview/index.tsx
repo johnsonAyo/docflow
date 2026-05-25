@@ -1,4 +1,5 @@
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { CreateWorkflowPanel } from "@/components/WorkspaceComponents/CreateWorkflowPanel";
 import { overviewLabels } from "./labels";
 import { WorkflowDefinition } from "@/types";
 
@@ -87,28 +88,7 @@ export function WorkflowOverview({
         </div>
       </section>
 
-      <aside className="workflow-create-panel" aria-labelledby="create-workflow-title">
-        <p className="app-kicker">{overviewLabels.createWorkflow.kicker}</p>
-        <h2 id="create-workflow-title">{overviewLabels.createWorkflow.title}</h2>
-        <form
-          className="create-workflow-fields"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            const name = String(formData.get("name") || "");
-            onCreateWorkflow(name, "");
-          }}
-        >
-          <label>
-            {overviewLabels.createWorkflow.fields.name}
-            <input name="name" type="text" placeholder="e.g. New supplier packet" required />
-          </label>
-          <button className="app-primary-action" type="submit">
-            <Plus size={16} aria-hidden="true" />
-            {overviewLabels.createWorkflow.action}
-          </button>
-        </form>
-      </aside>
+      <CreateWorkflowPanel onCreateWorkflow={onCreateWorkflow} />
     </div>
   );
 }

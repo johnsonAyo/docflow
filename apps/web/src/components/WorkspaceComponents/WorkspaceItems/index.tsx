@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Eye } from "lucide-react";
 import { WorkspaceItem } from "@/types";
 import { WorkspaceSectionTitle } from "@/components/WorkspaceComponents/WorkspaceSectionView/workspaceSectionTypes";
 
@@ -11,17 +11,36 @@ export function EmptyWorkspaceState({ title }: { title: WorkspaceSectionTitle })
   );
 }
 
-export function WorkspaceItems({ items, title }: { items: WorkspaceItem[]; title: WorkspaceSectionTitle }) {
+export function WorkspaceItems({
+  items,
+  onOpenReviewItem,
+  title,
+}: {
+  items: WorkspaceItem[];
+  onOpenReviewItem: (reviewId: string) => void;
+  title: WorkspaceSectionTitle;
+}) {
   return (
     <>
       {items.map((item) => (
-        <article className="workspace-item-row" key={`${title}-${item.title}`}>
+        <article className="workspace-item-row" key={item.id}>
           <div><strong>{item.title}</strong><span>{item.meta}</span></div>
           <p>{item.detail}</p>
           <b data-status={item.status}>{item.status}</b>
-          <button className="icon-row-action" type="button" aria-label={`Open ${item.title}`}>
-            <ArrowRight size={16} aria-hidden="true" />
-          </button>
+          {title === "Review queue" ? (
+            <button
+              className="icon-row-action"
+              type="button"
+              aria-label={`Review ${item.title}`}
+              onClick={() => onOpenReviewItem(item.id)}
+            >
+              <Eye size={16} aria-hidden="true" />
+            </button>
+          ) : (
+            <button className="icon-row-action" type="button" aria-label={`Open ${item.title}`}>
+              <ArrowRight size={16} aria-hidden="true" />
+            </button>
+          )}
         </article>
       ))}
     </>
@@ -29,13 +48,15 @@ export function WorkspaceItems({ items, title }: { items: WorkspaceItem[]; title
 }
 
 function emptyTitle(title: WorkspaceSectionTitle) {
-  if (title === "Runs") return "No document runs yet";
-  if (title === "Review queue") return "No review items yet";
-  return "No records yet";
+  if (title === "Process documents") return "No active document runs";
+  if (title === "Review queue") return "Queue is empty";
+  if (title === "Records") return "No records exported yet";
+  if (title === "Integrations") return "No integrations configured";
+  return "No items to display";
 }
 
 function emptyMessage(title: WorkspaceSectionTitle) {
-  if (title === "Runs") return "Publish a workflow and upload your own document to create the first run.";
+  if (title === "Process documents") return "Active uploads will appear here while OCR and extraction are still running.";
   if (title === "Review queue") return "Review items will appear after extraction finds missing or low-confidence fields.";
   return "Extracted records will appear after documents are uploaded and processed.";
 }

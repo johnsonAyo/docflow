@@ -16,9 +16,7 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
           <p>{content.description}</p>
         </div>
         <WorkspaceSectionActions
-          isApprovingReview={props.isApprovingReview}
           isTestingWebhook={props.isTestingWebhook}
-          onApproveNextReview={props.onApproveNextReview}
           onExportRecords={props.onExportRecords}
           onTestWebhook={props.onTestWebhook}
           title={props.title}
@@ -27,18 +25,20 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
       {props.title === "Review queue" ? <StateMessage state={props.reviewActionState} /> : null}
       {props.title === "Integrations" ? <StateMessage state={props.deliveryState} /> : null}
       <div className="workspace-item-list">
-        {props.title === "Runs" ? (
+        {props.title === "Process documents" ? (
           <DocumentUploadPanel
-            isUploadingDocument={props.isUploadingDocument}
-            onUploadDocument={props.onUploadDocument}
+            queue={props.queue}
             runWorkflowId={props.runWorkflowId}
             savedWorkflows={props.savedWorkflows}
             setRunWorkflowId={props.setRunWorkflowId}
-            uploadState={props.uploadState}
           />
         ) : null}
         {props.items.length === 0 ? <EmptyWorkspaceState title={props.title} /> : null}
-        <WorkspaceItems items={props.items} title={props.title} />
+        <WorkspaceItems
+          items={props.items}
+          onOpenReviewItem={props.onOpenReviewItem}
+          title={props.title}
+        />
       </div>
     </section>
   );
