@@ -49,7 +49,7 @@ export function useWorkflowDraftState(savedWorkflows: WorkflowDefinition[]) {
       status: "saved",
       message: `Loaded ${workflow.name} from the workflow API.`,
     });
-    setActiveStage("Fields");
+    setActiveStage("Document");
   }
 
   function handleAddField(event: FormEvent<HTMLFormElement>) {

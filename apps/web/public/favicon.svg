@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#818CF8" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="32" height="32" rx="8" fill="url(#bgGrad)"/>
+  <!-- Document Icon -->
+  <path d="M10 8C10 6.89543 10.8954 6 12 6H18L22 10V24C22 25.1046 21.1046 26 20 26H12C10.8954 26 10 25.1046 10 24V8Z" fill="url(#docGrad)" opacity="0.9"/>
+  <!-- Folded Corner -->
+  <path d="M18 6V10H22L18 6Z" fill="#F8FAFC" opacity="0.3"/>
+  <!-- OCR Scan Line -->
+  <path d="M8 16H24" stroke="#F43F5E" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+</svg>
