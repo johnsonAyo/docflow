@@ -11,7 +11,7 @@ class WorkflowCreate(BaseModel):
     name: str = Field(min_length=1)
     document_type: str = Field(min_length=1)
     status: WorkflowStatus = WorkflowStatus.DRAFT
-    intake_source: str = "Manual upload"
+    intake_source: list[str] = Field(default_factory=lambda: ["Manual upload"])
     complete_record: str = ""
     fields: list[dict[str, Any]] = Field(default_factory=list)
     review_rules: list[dict[str, Any]] = Field(default_factory=list)
@@ -25,7 +25,7 @@ class WorkflowUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1)
     document_type: str | None = Field(default=None, min_length=1)
     status: WorkflowStatus | None = None
-    intake_source: str | None = None
+    intake_source: list[str] | None = None
     complete_record: str | None = None
     fields: list[dict[str, Any]] | None = None
     review_rules: list[dict[str, Any]] | None = None

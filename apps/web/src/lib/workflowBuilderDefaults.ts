@@ -12,8 +12,8 @@ export function createEmptyWorkflowDraft(): WorkflowDraft {
     documentType: "",
     intakeSources: [],
     completeRecord: "",
-    reviewRules: cloneReviewRules(),
-    deliveryActions: cloneDeliveryActions(),
+    reviewRules: [],
+    deliveryActions: [],
   };
 }
 

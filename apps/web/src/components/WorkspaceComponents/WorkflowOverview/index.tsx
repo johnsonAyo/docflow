@@ -48,8 +48,6 @@ export function WorkflowOverview({
             <article
               className="published-workflow-row"
               key={workflow.id ?? workflow.name}
-              onClick={() => onRunWorkflow(workflow.id!)}
-              style={{ cursor: "pointer" }}
             >
               <div>
                 <strong>{workflow.name}</strong>

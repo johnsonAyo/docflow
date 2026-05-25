@@ -8,9 +8,11 @@ type FieldsStageProps = {
   onAddField: () => void;
   onChangeStage: (stage: WorkflowStage) => void;
   onDeleteField: (index: number) => void;
+  onPublishWorkflow: () => void;
+  isPublishing: boolean;
 };
 
-export function FieldsStage({ fields, onAddField, onChangeStage, onDeleteField }: FieldsStageProps) {
+export function FieldsStage({ fields, onAddField, onChangeStage, onDeleteField, onPublishWorkflow, isPublishing }: FieldsStageProps) {
   return (
     <>
       <div className="builder-title-row">
@@ -48,8 +50,8 @@ export function FieldsStage({ fields, onAddField, onChangeStage, onDeleteField }
       </div>
 
       <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
-        <button className="app-primary-action" type="button" onClick={() => onChangeStage("Review")}>
-          Next: Review rules
+        <button className="app-primary-action" type="button" onClick={onPublishWorkflow} disabled={isPublishing}>
+          {isPublishing ? "Publishing..." : "Publish workflow"}
         </button>
       </div>
     </>

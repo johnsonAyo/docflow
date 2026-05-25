@@ -35,6 +35,8 @@ export function WorkspaceContent({ workspace }: { workspace: WorkspaceModel }) {
         onDeleteField={actions.deleteField}
         onDeleteReviewRule={actions.deleteReviewRule}
         onWorkflowDraftChange={actions.updateWorkflowDraft}
+        onPublishWorkflow={actions.publishWorkflow}
+        isPublishing={builder.isSaving}
       />
     );
   }

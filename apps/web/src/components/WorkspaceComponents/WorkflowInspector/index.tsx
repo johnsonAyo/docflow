@@ -25,18 +25,12 @@ export function WorkflowInspector({
         <small data-save-state={saveState.status}>{saveState.message}</small>
       </div>
       {validationErrors.length > 0 ? <ValidationCard errors={validationErrors} /> : null}
-      <PlaceholderCard title={builderLabels.inspector.latestRun.title}>
-        Runs will appear here once this workflow is published and documents are uploaded.
-      </PlaceholderCard>
+
       <div className="inspector-card config-card">
         <div className="inspector-heading"><span>Advanced config</span><b>JSON</b></div>
         <pre>{configPreview}</pre>
       </div>
-      <div className="inspector-card evidence-card">
-        <span>{builderLabels.inspector.evidence.title}</span>
-        <EmptyPreview className="evidence-document">Upload a document to preview the text and visual extraction layout.</EmptyPreview>
-        <EmptyPreview className="extraction-result">Extracted fields and confidence scores will appear here.</EmptyPreview>
-      </div>
+
     </aside>
   );
 }

@@ -142,7 +142,7 @@ export const publishedWorkflows: PublishedWorkflow[] = [
 
 ];
 
-export const workflowStages: WorkflowStage[] = ["Document", "Fields", "Review", "Delivery"];
+export const workflowStages: WorkflowStage[] = ["Document", "Fields"];
 
 export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, WorkspaceSectionContent> = {
   Runs: {

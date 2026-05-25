@@ -1,7 +1,5 @@
-import { DeliveryStage } from "@/components/WorkspaceComponents/DeliveryStage";
 import { DocumentStage } from "@/components/WorkspaceComponents/DocumentStage";
 import { FieldsStage } from "@/components/WorkspaceComponents/FieldsStage";
-import { ReviewStage } from "@/components/WorkspaceComponents/ReviewStage";
 import { WorkflowInspector } from "@/components/WorkspaceComponents/WorkflowInspector";
 import { workflowStages } from "@/components/WorkspaceComponents/constants/labels";
 import { AppField, WorkflowDraft, WorkflowSaveState, WorkflowStage } from "@/types";
@@ -19,6 +17,8 @@ type WorkflowBuilderProps = {
   onDeleteField: (index: number) => void;
   onDeleteReviewRule: (index: number) => void;
   onWorkflowDraftChange: (updates: Partial<WorkflowDraft>) => void;
+  onPublishWorkflow: () => void;
+  isPublishing: boolean;
 };
 
 export function WorkflowBuilder({
@@ -34,6 +34,8 @@ export function WorkflowBuilder({
   onDeleteField,
   onDeleteReviewRule,
   onWorkflowDraftChange,
+  onPublishWorkflow,
+  isPublishing,
 }: WorkflowBuilderProps) {
   return (
     <div className="app-layout">
@@ -66,21 +68,11 @@ export function WorkflowBuilder({
               onAddField={onAddField}
               onChangeStage={onChangeStage}
               onDeleteField={onDeleteField}
+              onPublishWorkflow={onPublishWorkflow}
+              isPublishing={isPublishing}
             />
           )}
-          {activeStage === "Review" && (
-            <ReviewStage
-              onChangeStage={onChangeStage}
-              onDeleteRule={onDeleteReviewRule}
-              reviewRules={workflowDraft.reviewRules}
-            />
-          )}
-          {activeStage === "Delivery" && (
-            <DeliveryStage
-              deliveryActions={workflowDraft.deliveryActions}
-              onDeleteAction={onDeleteDeliveryAction}
-            />
-          )}
+
         </div>
       </section>
 
