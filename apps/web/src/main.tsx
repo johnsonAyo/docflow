@@ -5,7 +5,14 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { App } from "@/App";
 import "@/styles.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

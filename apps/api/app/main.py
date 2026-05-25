@@ -64,14 +64,17 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url:
-    origins.append(frontend_url)
+frontend_urls = os.getenv("FRONTEND_URL", "")
+for url in frontend_urls.split(","):
+    clean_url = url.strip().rstrip("/")
+    if clean_url:
+        origins.append(clean_url)
 
 app.add_middleware(TelemetryMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
