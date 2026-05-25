@@ -38,9 +38,9 @@ async def create_uploaded_document(
     )
     workflow = workflow_store.get_workflow(workflow_id)
 
-    try:
-        from app.worker import process_document_task
-    except ModuleNotFoundError:
+    use_celery_worker = getattr(settings, "use_celery_worker", False) is True
+
+    if not use_celery_worker:
         processing = process_uploaded_document(
             body=body,
             filename=filename,
@@ -56,14 +56,31 @@ async def create_uploaded_document(
         )
         return upload_response(document_run, resource_stores["document_runs"], artifact, processing)
 
-    process_document_task.delay(
-        document_run_id=document_run["id"],
-        workflow_id=workflow_id,
-        document_type=document_type,
-        filename=filename,
-        content_type=content_type,
-        artifact=artifact,
-    )
+    try:
+        from app.worker import process_document_task
+        process_document_task.delay(
+            document_run_id=document_run["id"],
+            workflow_id=workflow_id,
+            document_type=document_type,
+            filename=filename,
+            content_type=content_type,
+            artifact=artifact,
+        )
+    except Exception:
+        processing = process_uploaded_document(
+            body=body,
+            filename=filename,
+            content_type=content_type,
+            workflow_id=workflow_id,
+            document_type=document_type,
+            document_run_id=document_run["id"],
+            workflow_config=workflow["config"] if workflow is not None else {},
+            settings=settings,
+            document_store=store,
+            records=resource_stores["records"],
+            review_states=resource_stores["review_states"],
+        )
+        return upload_response(document_run, resource_stores["document_runs"], artifact, processing)
 
     return {
         "document_run": document_run,

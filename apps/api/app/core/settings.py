@@ -34,6 +34,7 @@ class AppSettings:
     ollama_model: str
     ollama_timeout_seconds: float
     redis_url: str
+    use_celery_worker: bool
 
 
 def load_settings() -> AppSettings:
@@ -98,4 +99,5 @@ def load_settings() -> AppSettings:
         ollama_model=os.getenv("DOCFLOW_OLLAMA_MODEL", "llama3.1:8b"),
         ollama_timeout_seconds=float(os.getenv("DOCFLOW_OLLAMA_TIMEOUT_SECONDS", "30")),
         redis_url=os.getenv("DOCFLOW_REDIS_URL", "redis://localhost:6379/0"),
+        use_celery_worker=env_bool("DOCFLOW_USE_CELERY_WORKER", False),
     )
