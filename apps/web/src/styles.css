@@ -1311,11 +1311,25 @@ strong {
   .site-nav {
     top: 10px;
     width: calc(100% - 20px);
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
     min-height: 54px;
   }
 
+  .brand {
+    min-width: 0;
+  }
+
+  .brand span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .nav-action {
-    display: none;
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 0.8125rem;
   }
 
   .hero {
@@ -1432,6 +1446,12 @@ strong {
 
   .final-section .primary-button {
     width: fit-content;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand span:last-child {
+    display: none;
   }
 }
 

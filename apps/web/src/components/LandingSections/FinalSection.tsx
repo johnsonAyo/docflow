@@ -9,7 +9,7 @@ export function FinalSection() {
         <p className="eyebrow">{landingLabels.final.eyebrow}</p>
         <h2 id="final-title">{landingLabels.final.title}</h2>
       </div>
-      <a className="primary-button" href="#workflow">
+      <a className="primary-button" href="#/app">
         {landingLabels.final.action}
         <ArrowRight size={18} aria-hidden="true" />
       </a>
