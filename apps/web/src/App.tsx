@@ -1,6 +1,6 @@
-import { useRoute } from "./hooks/useRoute";
-import { LandingPage } from "./pages/LandingPage";
-import { WorkspacePage } from "./pages/WorkspacePage";
+import { useRoute } from "@/hooks/useRoute";
+import { LandingPage } from "@/pages/LandingPage";
+import { WorkspacePage } from "@/pages/WorkspacePage";
 
 export function App() {
   const route = useRoute();

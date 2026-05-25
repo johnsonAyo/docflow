@@ -1,0 +1,97 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  approveReview,
+  exportRecords,
+  invalidateDocumentData,
+  nextOpenReview,
+  runWebhookTest,
+  saveWorkflow,
+  showStateError,
+} from "@/hooks/workflowMutationHelpers";
+import { WorkflowMutationOptions } from "@/hooks/workflowMutationTypes";
+import { testWebhook, uploadDocument } from "@/api";
+
+export function useWorkflowMutations({
+  activeWorkflowId,
+  fields,
+  reviewStates,
+  savedWorkflows,
+  setActiveWorkflowId,
+  setDeliveryState,
+  setReviewActionState,
+  setSaveState,
+  setToastMessage,
+  setUploadState,
+  workflowDraft,
+}: WorkflowMutationOptions) {
+  const queryClient = useQueryClient();
+
+  const publishMutation = useMutation({
+    mutationFn: () => saveWorkflow(activeWorkflowId, workflowDraft, fields),
+    onSuccess: (savedWorkflow) => {
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+      setActiveWorkflowId(savedWorkflow.id);
+      setSaveState({
+        status: "saved",
+        message: `${savedWorkflow.name} is published and stored in the workflow API.`,
+      });
+      setToastMessage({ message: `${savedWorkflow.name} published successfully!`, type: "success" });
+    },
+    onError: (error: unknown) => {
+      showStateError(error, "Could not save workflow.", setSaveState, setToastMessage);
+    },
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: (formData: FormData) => uploadDocument(formData),
+    onSuccess: (_result, variables) => {
+      const file = variables.get("file") as File;
+      invalidateDocumentData(queryClient);
+      setUploadState({
+        status: "saved",
+        message: `Successfully uploaded ${file.name}. It will be processed shortly.`,
+      });
+      setToastMessage({ message: `Document ${file.name} uploaded successfully!`, type: "success" });
+    },
+    onError: (error: unknown) => {
+      showStateError(error, "Upload failed.", setUploadState, setToastMessage);
+    },
+  });
+
+  const testWebhookMutation = useMutation({
+    mutationFn: (workflowId: string) => testWebhook(workflowId),
+    onSuccess: (result) => {
+      setDeliveryState({
+        status: "saved",
+        message: `Webhook simulation logged as ${String(result.id || "sent")}.`,
+      });
+      setToastMessage({ message: "Webhook simulation sent successfully!", type: "success" });
+    },
+    onError: (error: unknown) => {
+      showStateError(error, "Could not test webhook.", setDeliveryState, setToastMessage);
+    },
+  });
+
+  const approveReviewMutation = useMutation({
+    mutationFn: approveReview,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
+      queryClient.invalidateQueries({ queryKey: ["records"] });
+      setReviewActionState({ status: "saved", message: "Review item approved." });
+      setToastMessage({ message: "Review item approved successfully!", type: "success" });
+    },
+    onError: (error: unknown) => {
+      showStateError(error, "Could not approve review item.", setReviewActionState, setToastMessage);
+    },
+  });
+
+  return {
+    approveReviewMutation,
+    handleExportRecords: () => exportRecords(savedWorkflows),
+    handleTestWebhook: () => runWebhookTest(savedWorkflows, setDeliveryState, testWebhookMutation.mutate),
+    nextReview: nextOpenReview(reviewStates),
+    publishMutation,
+    testWebhookMutation,
+    uploadDocumentMutation,
+  };
+}

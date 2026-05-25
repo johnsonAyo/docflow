@@ -1,32 +1,21 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, status
 
-from app.core.exceptions import WorkflowNotFoundError
+from app.api.routers.workflow_dependencies import (
+    fetch_workflow_or_404,
+    get_workflow_store,
+)
+from app.api.routers.workflow_updates import apply_workflow_update
 from app.domain.models import WorkflowCreate, WorkflowResponse, WorkflowUpdate
 from app.infrastructure.repositories import WorkflowDefinitionStore, workflow_response
 from app.services.workflow_service import (
     build_config,
     build_workflow_document,
     slugify,
-    update_config,
 )
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
-
-def get_workflow_store(request: Request) -> WorkflowDefinitionStore:
-    return request.app.state.workflow_store
-
-def fetch_workflow_or_404(
-    store: WorkflowDefinitionStore,
-    workflow_id: str,
-) -> dict[str, Any]:
-    workflow = store.get_workflow(workflow_id)
-
-    if workflow is None:
-        raise WorkflowNotFoundError()
-
-    return workflow
 
 @router.get("", response_model=list[WorkflowResponse])
 def list_workflows(store: WorkflowDefinitionStore = Depends(get_workflow_store)) -> list[dict[str, Any]]:
@@ -80,24 +69,19 @@ def update_workflow(
     store: WorkflowDefinitionStore = Depends(get_workflow_store)
 ) -> dict[str, Any]:
     workflow = fetch_workflow_or_404(store, workflow_id)
-    updates = payload.model_dump(exclude_unset=True, mode="json")
-
-    name = updates.get("name", workflow["name"])
-    document_type = updates.get("document_type", workflow["document_type"])
-    workflow_status = updates.get("status", workflow["status"])
-    config = update_config(workflow["config"], updates)
-
-    updated_workflow = store.update_workflow(
-        workflow_id,
-        {
-            "name": name,
-            "document_type": document_type,
-            "status": workflow_status,
-            "config": config,
-        },
+    updated_workflow = apply_workflow_update(
+        payload=payload,
+        store=store,
+        workflow=workflow,
+        workflow_id=workflow_id,
     )
-
-    if updated_workflow is None:
-        raise WorkflowNotFoundError()
-
     return workflow_response(updated_workflow)
+
+
+@router.delete("/{workflow_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_workflow(
+    workflow_id: str,
+    store: WorkflowDefinitionStore = Depends(get_workflow_store)
+) -> None:
+    if not store.delete_workflow(workflow_id):
+        fetch_workflow_or_404(store, workflow_id)

@@ -57,7 +57,7 @@ export const workspaceComponentsLabels = {
         kicker: "Field schema",
         title: "Define the record schema for this workflow.",
         action: "Add field",
-        tableHeaders: ["Field", "Type", "Evidence source", "Confidence", "Rule"]
+        tableHeaders: ["Field", "Type", "Confidence", "Rule", ""]
       },
       review: {
         kicker: "Review rules",

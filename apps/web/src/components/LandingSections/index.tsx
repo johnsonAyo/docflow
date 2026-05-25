@@ -1,0 +1,9 @@
+export { ArchitectureSection } from "@/components/LandingSections/ArchitectureSection";
+export { FinalSection } from "@/components/LandingSections/FinalSection";
+export { HeroSection } from "@/components/LandingSections/HeroSection";
+export { IntegrationSection } from "@/components/LandingSections/IntegrationSection";
+export { IntroSection } from "@/components/LandingSections/IntroSection";
+export { ProofSection } from "@/components/LandingSections/ProofSection";
+export { ReviewSection } from "@/components/LandingSections/ReviewSection";
+export { UseCasesSection } from "@/components/LandingSections/UseCasesSection";
+export { WorkflowSection } from "@/components/LandingSections/WorkflowSection";
