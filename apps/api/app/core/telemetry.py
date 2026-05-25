@@ -27,32 +27,34 @@ class JSONLogFormatter(logging.Formatter):
             log_obj["duration_ms"] = record.duration_ms
         return json.dumps(log_obj)
 
+
 def setup_telemetry():
     logger = logging.getLogger("docflow")
     logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
     handler.setFormatter(JSONLogFormatter())
     logger.addHandler(handler)
-    
+
     # Also adjust uvicorn access logs if possible, but keep it simple for now
     return logger
+
 
 class TelemetryMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         logger = logging.getLogger("docflow")
         start_time = time.time()
-        
+
         response = await call_next(request)
-        
+
         duration_ms = round((time.time() - start_time) * 1000, 2)
-        
+
         logger.info(
             "HTTP Request",
             extra={
                 "method": request.method,
                 "path": request.url.path,
                 "status_code": response.status_code,
-                "duration_ms": duration_ms
-            }
+                "duration_ms": duration_ms,
+            },
         )
         return response

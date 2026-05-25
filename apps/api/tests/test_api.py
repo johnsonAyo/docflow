@@ -6,10 +6,12 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def mock_deps():
-    with patch("app.main.load_settings") as mock_settings, \
-         patch("app.main.create_workflow_store") as mock_wfs, \
-         patch("app.main.create_resource_stores") as mock_rs, \
-         patch("app.main.create_document_store") as mock_ds:
+    with (
+        patch("app.main.load_settings") as mock_settings,
+        patch("app.main.create_workflow_store") as mock_wfs,
+        patch("app.main.create_resource_stores") as mock_rs,
+        patch("app.main.create_document_store") as mock_ds,
+    ):
         mock_settings.return_value = MagicMock(
             mongodb_database="docflow",
             document_bucket="docflow-documents",

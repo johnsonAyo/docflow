@@ -67,5 +67,9 @@ class FakeWorkflowStore:
 
     def delete_workflow(self, workflow_id):
         initial_len = len(self.created)
-        self.created = [w for w in self.created if w.get("id") != workflow_id and w.get("_id") != workflow_id]
+        self.created = [
+            w
+            for w in self.created
+            if w.get("id") != workflow_id and w.get("_id") != workflow_id
+        ]
         return len(self.created) < initial_len

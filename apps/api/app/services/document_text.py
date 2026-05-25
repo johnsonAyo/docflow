@@ -6,7 +6,9 @@ TEXT_EXTENSIONS = (".txt", ".text", ".md", ".csv")
 
 
 def is_text_document(filename: str, content_type: str) -> bool:
-    return content_type.startswith("text/") or filename.lower().endswith(TEXT_EXTENSIONS)
+    return content_type.startswith("text/") or filename.lower().endswith(
+        TEXT_EXTENSIONS
+    )
 
 
 def decode_text(body: bytes) -> str:

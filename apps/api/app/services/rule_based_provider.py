@@ -3,7 +3,9 @@ from typing import Any, Callable  # noqa: I001
 from app.services.ocr_models import ExtractionResult
 
 
-Extractor = Callable[[str, str], tuple[list[dict[str, Any]], list[dict[str, Any]], float]]
+Extractor = Callable[
+    [str, str], tuple[list[dict[str, Any]], list[dict[str, Any]], float]
+]
 
 
 class RuleBasedExtractionProvider:

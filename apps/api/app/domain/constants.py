@@ -6,12 +6,14 @@ class WorkflowStatus(str, Enum):
     PUBLISHED = "published"
     ARCHIVED = "archived"
 
+
 class DocumentRunStatus(str, Enum):
     UPLOADED = "uploaded"
     PROCESSING = "processing"
     NEEDS_REVIEW = "needs_review"
     APPROVED = "approved"
     FAILED = "failed"
+
 
 class RecordStatus(str, Enum):
     DRAFT = "draft"
@@ -20,11 +22,13 @@ class RecordStatus(str, Enum):
     EXPORTED = "exported"
     FAILED = "failed"
 
+
 class ReviewStatus(str, Enum):
     OPEN = "open"
     APPROVED = "approved"
     REJECTED = "rejected"
     RESOLVED = "resolved"
+
 
 class IntegrationStatus(str, Enum):
     PENDING = "pending"

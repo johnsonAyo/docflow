@@ -17,9 +17,11 @@ def test_workflow_create_valid():
     assert w.document_type == "Financial"
     assert w.status == "draft"
 
+
 def test_workflow_create_invalid():
     with pytest.raises(ValidationError):
         WorkflowCreate(name="", document_type="Type")
+
 
 def test_workflow_update():
     u = WorkflowUpdate(name="New")

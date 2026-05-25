@@ -10,7 +10,9 @@ class MongoStoreRegistry:
         try:
             from pymongo import MongoClient
         except ImportError as exc:
-            raise RuntimeError("pymongo is required for DocFlow metadata storage") from exc
+            raise RuntimeError(
+                "pymongo is required for DocFlow metadata storage"
+            ) from exc
 
         self.client = MongoClient(uri, serverSelectionTimeoutMS=2000)
         self.client.admin.command("ping")
@@ -31,9 +33,17 @@ def create_workflow_store(settings: Any) -> tuple[WorkflowDefinitionStore, str |
 def create_resource_stores(settings: Any) -> dict[str, ResourceStore]:
     registry = MongoStoreRegistry(settings.mongodb_uri, settings.mongodb_database)
     return {
-        "document_runs": registry.resource_store(settings.mongodb_document_runs_collection),
+        "document_runs": registry.resource_store(
+            settings.mongodb_document_runs_collection
+        ),
         "records": registry.resource_store(settings.mongodb_records_collection),
-        "review_states": registry.resource_store(settings.mongodb_review_states_collection),
-        "integration_logs": registry.resource_store(settings.mongodb_integration_logs_collection),
-        "action_history": registry.resource_store(settings.mongodb_action_history_collection),
+        "review_states": registry.resource_store(
+            settings.mongodb_review_states_collection
+        ),
+        "integration_logs": registry.resource_store(
+            settings.mongodb_integration_logs_collection
+        ),
+        "action_history": registry.resource_store(
+            settings.mongodb_action_history_collection
+        ),
     }

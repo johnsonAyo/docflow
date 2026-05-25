@@ -7,7 +7,9 @@ from app.services.document_processing_helpers import (
     ocr_review_result,
     store_record_result,
 )
-from app.services.document_text import decode_text, extract_document_text, is_text_document  # noqa: F401
+from app.services.document_text import (
+    extract_document_text,
+)  # noqa: F401
 from app.services.rule_extractors import (
     date_match,  # noqa: F401
     extract_contract_fields,  # noqa: F401
@@ -60,7 +62,9 @@ def process_uploaded_document(
             "extraction_provider": extraction_provider,
             "ocr_issues": ocr_issues,
             "ocr_provider": ocr_provider,
-            "ollama_model": settings.ollama_model if extraction_provider == "ollama" else None,
+            "ollama_model": settings.ollama_model
+            if extraction_provider == "ollama"
+            else None,
             "workflow_id": workflow_id,
         },
         document_store=document_store,

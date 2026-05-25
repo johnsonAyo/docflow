@@ -36,7 +36,9 @@ class MongoWorkflowDefinitionStore(WorkflowDefinitionStore):
         )
         return None if document is None else self._from_mongo(document)
 
-    def update_workflow(self, workflow_id: str, updates: dict[str, Any]) -> WorkflowDocument | None:
+    def update_workflow(
+        self, workflow_id: str, updates: dict[str, Any]
+    ) -> WorkflowDocument | None:
         updates = {key: value for key, value in updates.items() if value is not None}
         updates["updated_at"] = utc_now()
         self.collection.update_one(

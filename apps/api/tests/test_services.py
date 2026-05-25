@@ -11,11 +11,15 @@ def test_slugify():
     assert slugify("---Test---") == "test"
     assert slugify("!@#$%") == "workflow"
 
+
 def test_build_workflow_document():
-    doc = build_workflow_document(name="Test", document_type="Type", status="draft", config={})
+    doc = build_workflow_document(
+        name="Test", document_type="Type", status="draft", config={}
+    )
     assert doc["slug"] == "test"
     assert "_id" in doc
     assert "created_at" in doc
+
 
 def test_update_config():
     curr = {"name": "Old", "fields": []}
@@ -83,4 +87,6 @@ def test_process_text_upload_creates_record_with_ollama_fallback_issue():
     assert result["record"]["metadata"]["extraction_provider"] == "rule_based_fallback"
     assert result["record"]["fields"][0]["name"] == "Vendor"
     assert result["review_state"]["status"] == "open"
-    assert any(issue["field"] == "Extraction" for issue in result["review_state"]["issues"])
+    assert any(
+        issue["field"] == "Extraction" for issue in result["review_state"]["issues"]
+    )

@@ -10,9 +10,11 @@ def test_exceptions():
     assert e.status_code == 404
     assert e.detail["code"] == "WORKFLOW_NOT_FOUND"
 
+
 class MockRequest:
     def __init__(self, host):
         self.client = type("Client", (), {"host": host})()
+
 
 def test_rate_limiter():
     limiter = SimpleRateLimiter(calls=2, period=10)

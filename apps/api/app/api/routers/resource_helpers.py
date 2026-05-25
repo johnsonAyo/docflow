@@ -39,7 +39,9 @@ def update_resource(
     resource_id: str,
     payload: BaseModel,
 ) -> dict[str, Any]:
-    resource = store.update_item(resource_id, payload.model_dump(exclude_unset=True, mode="json"))
+    resource = store.update_item(
+        resource_id, payload.model_dump(exclude_unset=True, mode="json")
+    )
     if resource is None:
         raise ResourceNotFoundError(resource_name, resource_id)
     return resource

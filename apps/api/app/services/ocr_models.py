@@ -28,7 +28,9 @@ class ExtractionResult:
 class OCRProvider(Protocol):
     name: str
 
-    def extract_text(self, *, body: bytes, filename: str, content_type: str) -> OcrResult:
+    def extract_text(
+        self, *, body: bytes, filename: str, content_type: str
+    ) -> OcrResult:
         raise NotImplementedError
 
 

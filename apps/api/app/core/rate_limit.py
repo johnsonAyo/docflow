@@ -30,8 +30,9 @@ class SimpleRateLimiter:
         if not self.is_allowed(client_ip):
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many requests, please try again later."
+                detail="Too many requests, please try again later.",
             )
+
 
 # Default limit: 100 requests per 60 seconds
 rate_limit = SimpleRateLimiter(calls=100, period=60)

@@ -10,7 +10,9 @@ class DocumentStore(ABC):
     name: str
 
     @abstractmethod
-    def put_object(self, object_key: str, body: bytes, content_type: str) -> dict[str, Any]:
+    def put_object(
+        self, object_key: str, body: bytes, content_type: str
+    ) -> dict[str, Any]:
         raise NotImplementedError
 
 

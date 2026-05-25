@@ -53,7 +53,9 @@ class WorkflowDefinitionStore(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update_workflow(self, workflow_id: str, updates: dict[str, Any]) -> WorkflowDocument | None:
+    def update_workflow(
+        self, workflow_id: str, updates: dict[str, Any]
+    ) -> WorkflowDocument | None:
         raise NotImplementedError
 
     @abstractmethod
@@ -65,7 +67,9 @@ class ResourceStore(ABC):
     name: str
 
     @abstractmethod
-    def list_items(self, filters: dict[str, Any] | None = None) -> list[ResourceDocument]:
+    def list_items(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[ResourceDocument]:
         raise NotImplementedError
 
     @abstractmethod
@@ -77,5 +81,7 @@ class ResourceStore(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update_item(self, item_id: str, updates: dict[str, Any]) -> ResourceDocument | None:
+    def update_item(
+        self, item_id: str, updates: dict[str, Any]
+    ) -> ResourceDocument | None:
         raise NotImplementedError

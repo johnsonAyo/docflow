@@ -3,7 +3,10 @@ from fastapi import HTTPException, status
 
 class DocFlowException(HTTPException):
     def __init__(self, status_code: int, detail: str, error_code: str):
-        super().__init__(status_code=status_code, detail={"message": detail, "code": error_code})
+        super().__init__(
+            status_code=status_code, detail={"message": detail, "code": error_code}
+        )
+
 
 class WorkflowNotFoundError(DocFlowException):
     def __init__(self, workflow_id: str | None = None):
@@ -14,7 +17,7 @@ class WorkflowNotFoundError(DocFlowException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=detail,
-            error_code="WORKFLOW_NOT_FOUND"
+            error_code="WORKFLOW_NOT_FOUND",
         )
 
 
@@ -26,18 +29,20 @@ class ResourceNotFoundError(DocFlowException):
             error_code="RESOURCE_NOT_FOUND",
         )
 
+
 class InvalidArtifactKeyError(DocFlowException):
     def __init__(self, detail: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
-            error_code="INVALID_ARTIFACT_KEY"
+            error_code="INVALID_ARTIFACT_KEY",
         )
+
 
 class MissingArtifactBodyError(DocFlowException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Artifact body is required",
-            error_code="MISSING_ARTIFACT_BODY"
+            error_code="MISSING_ARTIFACT_BODY",
         )

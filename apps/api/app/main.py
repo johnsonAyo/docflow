@@ -19,8 +19,10 @@ from app.infrastructure.repositories import (
 def app_settings(app: FastAPI) -> AppSettings:
     return app.state.settings
 
+
 def workflow_store(app: FastAPI) -> WorkflowDefinitionStore:
     return app.state.workflow_store
+
 
 def document_store(app: FastAPI) -> DocumentStore:
     return app.state.document_store
@@ -34,7 +36,7 @@ def resource_stores(app: FastAPI) -> dict[str, ResourceStore]:
 async def lifespan(app: FastAPI):
     # Setup telemetry (this sets up logging for the app lifecycle)
     setup_telemetry()
-    
+
     settings = load_settings()
     workflow_definition_store, workflow_warning = create_workflow_store(settings)
     configured_resource_stores = create_resource_stores(settings)
@@ -51,6 +53,7 @@ async def lifespan(app: FastAPI):
     ]
 
     yield
+
 
 app = FastAPI(
     title="DocFlow API",
@@ -84,6 +87,7 @@ app.include_router(workflows.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(resources.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
+
 
 @app.get("/health")
 def health_check(request: Request) -> dict[str, object]:

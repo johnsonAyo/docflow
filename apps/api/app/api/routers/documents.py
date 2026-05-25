@@ -41,7 +41,9 @@ async def put_document_artifact(
     return store.put_object(key, body, content_type)
 
 
-@router.post("/uploads", status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit)])
+@router.post(
+    "/uploads", status_code=status.HTTP_201_CREATED, dependencies=[Depends(rate_limit)]
+)
 async def upload_document(
     workflow_id: str = Form(...),
     document_type: str = Form(...),

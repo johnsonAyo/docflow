@@ -19,7 +19,9 @@ class S3DocumentStore(DocumentStore):
             import boto3
             from botocore.exceptions import ClientError
         except ImportError as exc:
-            raise RuntimeError("boto3 is required when DOCFLOW_DOCUMENT_STORE=s3") from exc
+            raise RuntimeError(
+                "boto3 is required when DOCFLOW_DOCUMENT_STORE=s3"
+            ) from exc
 
         self.bucket = bucket
         self.client_error = ClientError
@@ -32,9 +34,13 @@ class S3DocumentStore(DocumentStore):
         )
         self._ensure_bucket()
 
-    def put_object(self, object_key: str, body: bytes, content_type: str) -> dict[str, Any]:
+    def put_object(
+        self, object_key: str, body: bytes, content_type: str
+    ) -> dict[str, Any]:
         key = safe_object_key(object_key)
-        self.client.put_object(Bucket=self.bucket, Key=key, Body=body, ContentType=content_type)
+        self.client.put_object(
+            Bucket=self.bucket, Key=key, Body=body, ContentType=content_type
+        )
         return {
             "key": key,
             "store": self.name,

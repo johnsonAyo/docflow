@@ -8,13 +8,18 @@ from tests.fakes import FakeResourceStore
 def test_records_csv_export_returns_field_rows():
     app = FastAPI()
     records = FakeResourceStore()
-    records.create_item({
-        "workflow_id": "workflow-1",
-        "document_run_id": "run-1",
-        "status": "needs_review",
-        "fields": [{"name": "Vendor", "value": "Northline"}, {"name": "Total amount", "value": "18420.00"}],
-        "confidence": 0.84,
-    })
+    records.create_item(
+        {
+            "workflow_id": "workflow-1",
+            "document_run_id": "run-1",
+            "status": "needs_review",
+            "fields": [
+                {"name": "Vendor", "value": "Northline"},
+                {"name": "Total amount", "value": "18420.00"},
+            ],
+            "confidence": 0.84,
+        }
+    )
     app.state.resource_stores = {"records": records}
     app.include_router(integrations.router, prefix="/api/v1")
 
@@ -31,7 +36,10 @@ def test_webhook_simulation_logs_delivery_and_action_history():
     app = FastAPI()
     integration_logs = FakeResourceStore()
     action_history = FakeResourceStore()
-    app.state.resource_stores = {"integration_logs": integration_logs, "action_history": action_history}
+    app.state.resource_stores = {
+        "integration_logs": integration_logs,
+        "action_history": action_history,
+    }
     app.include_router(integrations.router, prefix="/api/v1")
 
     with TestClient(app) as client:

@@ -17,7 +17,9 @@ class MongoResourceStore(ResourceStore):
         self.collection.create_index([("created_at", -1)])
         self.collection.create_index([("updated_at", -1)])
 
-    def list_items(self, filters: dict[str, Any] | None = None) -> list[ResourceDocument]:
+    def list_items(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[ResourceDocument]:
         query = filters or {}
         return [
             self._from_mongo(document)
@@ -33,7 +35,9 @@ class MongoResourceStore(ResourceStore):
         document = self.collection.find_one({"_id": item_id})
         return None if document is None else self._from_mongo(document)
 
-    def update_item(self, item_id: str, updates: dict[str, Any]) -> ResourceDocument | None:
+    def update_item(
+        self, item_id: str, updates: dict[str, Any]
+    ) -> ResourceDocument | None:
         updates = {key: value for key, value in updates.items() if value is not None}
         updates["updated_at"] = utc_now()
         self.collection.update_one({"_id": item_id}, {"$set": updates})

@@ -9,9 +9,11 @@ from app.domain.models import WorkflowCreate
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
+
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug or "workflow"
+
 
 def build_workflow_document(
     *,
@@ -35,11 +37,13 @@ def build_workflow_document(
         "updated_at": timestamp,
     }
 
+
 def build_config(payload: WorkflowCreate) -> dict[str, Any]:
     payload_data = payload.model_dump(mode="json")
     config = dict(payload_data.pop("config"))
     config.update(payload_data)
     return config
+
 
 def update_config(
     current_config: dict[str, Any],
