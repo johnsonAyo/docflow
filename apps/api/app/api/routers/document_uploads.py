@@ -54,10 +54,13 @@ async def create_uploaded_document(
             records=resource_stores["records"],
             review_states=resource_stores["review_states"],
         )
-        return upload_response(document_run, resource_stores["document_runs"], artifact, processing)
+        return upload_response(
+            document_run, resource_stores["document_runs"], artifact, processing
+        )
 
     try:
         from app.worker import process_document_task
+
         process_document_task.delay(
             document_run_id=document_run["id"],
             workflow_id=workflow_id,
@@ -80,7 +83,9 @@ async def create_uploaded_document(
             records=resource_stores["records"],
             review_states=resource_stores["review_states"],
         )
-        return upload_response(document_run, resource_stores["document_runs"], artifact, processing)
+        return upload_response(
+            document_run, resource_stores["document_runs"], artifact, processing
+        )
 
     return {
         "document_run": document_run,
