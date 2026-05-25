@@ -1,4 +1,3 @@
-
 from celery import Celery
 
 from app.api.routers.document_uploads import upload_response
