@@ -1,6 +1,6 @@
 from typing import Any
 
-from app.api.dependencies import get_workflow_store
+from app.api.dependencies import get_workflow_store  # noqa: F401
 from app.core.exceptions import WorkflowNotFoundError
 from app.infrastructure.repositories import WorkflowDefinitionStore
 

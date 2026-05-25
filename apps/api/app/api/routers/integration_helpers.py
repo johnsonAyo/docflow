@@ -5,7 +5,7 @@ from typing import Any
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.api.dependencies import get_resource_stores
+from app.api.dependencies import get_resource_stores  # noqa: F401
 from app.infrastructure.repositories import ResourceStore
 
 

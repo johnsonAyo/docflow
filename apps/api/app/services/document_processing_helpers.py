@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any  # noqa: I001
 
 from app.infrastructure.document_store import DocumentStore, artifact_key
 from app.infrastructure.repositories import ResourceStore

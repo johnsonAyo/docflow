@@ -2,8 +2,8 @@ from typing import Any
 
 from app.infrastructure.document_store_base import (
     DocumentStore,
-    artifact_key,
-    safe_object_key,
+    artifact_key,  # noqa: F401
+    safe_object_key,  # noqa: F401
 )
 from app.infrastructure.s3_document_store import S3DocumentStore
 

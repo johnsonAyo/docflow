@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from app.api.dependencies import get_resource_stores
+from app.api.dependencies import get_resource_stores  # noqa: F401
 from app.core.exceptions import ResourceNotFoundError
 from app.infrastructure.repositories import ResourceStore
 

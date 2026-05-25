@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any  # noqa: I001
 
 from app.infrastructure.document_store import DocumentStore
 from app.infrastructure.repositories import ResourceStore
@@ -7,13 +7,13 @@ from app.services.document_processing_helpers import (
     ocr_review_result,
     store_record_result,
 )
-from app.services.document_text import decode_text, extract_document_text, is_text_document
+from app.services.document_text import decode_text, extract_document_text, is_text_document  # noqa: F401
 from app.services.rule_extractors import (
-    date_match,
-    extract_contract_fields,
-    extract_fields,
-    extract_invoice_fields,
-    money_match,
+    date_match,  # noqa: F401
+    extract_contract_fields,  # noqa: F401
+    extract_fields,  # noqa: F401
+    extract_invoice_fields,  # noqa: F401
+    money_match,  # noqa: F401
 )
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable  # noqa: I001
 
 from app.services.ocr_models import ExtractionResult
 

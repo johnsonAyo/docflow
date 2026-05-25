@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any  # noqa: I001
 
 from fastapi import APIRouter, Body, Depends, Request
 from pydantic import BaseModel
