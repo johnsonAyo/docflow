@@ -16,7 +16,6 @@ export function WorkflowOverview({
   onCreateWorkflow,
   onDeleteWorkflow,
   onOpenWorkflow,
-  onRunWorkflow,
   savedWorkflows,
 }: WorkflowOverviewProps) {
   const workflowRows = savedWorkflows.map((workflow) => ({
