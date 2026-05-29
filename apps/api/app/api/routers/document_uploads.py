@@ -130,18 +130,21 @@ async def create_uploaded_document(
         artifact=artifacts[0],
     )
 
-    updated_run = resource_stores["document_runs"].update_item(
-        document_run["id"],
-        {
-            "metadata": {
-                **document_run["metadata"],
-                "processing": {
-                    "stage": "queued",
-                    "message": "OCR and extraction have been queued for background processing.",
-                },
-            }
-        },
-    ) or document_run
+    updated_run = (
+        resource_stores["document_runs"].update_item(
+            document_run["id"],
+            {
+                "metadata": {
+                    **document_run["metadata"],
+                    "processing": {
+                        "stage": "queued",
+                        "message": "OCR and extraction have been queued for background processing.",
+                    },
+                }
+            },
+        )
+        or document_run
+    )
 
     return {
         "document_run": updated_run,
