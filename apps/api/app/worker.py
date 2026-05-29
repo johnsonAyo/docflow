@@ -1,3 +1,5 @@
+from threading import Thread
+
 from celery import Celery
 
 from app.api.routers.document_uploads import upload_response
@@ -13,8 +15,7 @@ settings = load_settings()
 celery_app = Celery("docflow_worker", broker=settings.redis_url)
 
 
-@celery_app.task(name="process_document_task")
-def process_document_task(
+def process_document_job(
     document_run_id: str,
     workflow_id: str,
     document_type: str,
@@ -82,3 +83,57 @@ def process_document_task(
             document_run_id, {"status": "failed", "error": str(e)}
         )
         raise
+
+
+@celery_app.task(name="process_document_task")
+def process_document_task(
+    document_run_id: str,
+    workflow_id: str,
+    document_type: str,
+    filename: str,
+    content_type: str,
+    artifact: dict,
+):
+    return process_document_job(
+        document_run_id=document_run_id,
+        workflow_id=workflow_id,
+        document_type=document_type,
+        filename=filename,
+        content_type=content_type,
+        artifact=artifact,
+    )
+
+
+def enqueue_document_task(
+    *,
+    document_run_id: str,
+    workflow_id: str,
+    document_type: str,
+    filename: str,
+    content_type: str,
+    artifact: dict,
+) -> None:
+    try:
+        process_document_task.delay(
+            document_run_id=document_run_id,
+            workflow_id=workflow_id,
+            document_type=document_type,
+            filename=filename,
+            content_type=content_type,
+            artifact=artifact,
+        )
+    except Exception:
+        # If the broker or worker is unavailable, fall back to a daemon thread so
+        # the request still returns immediately instead of blocking the UI.
+        Thread(
+            target=process_document_job,
+            kwargs={
+                "document_run_id": document_run_id,
+                "workflow_id": workflow_id,
+                "document_type": document_type,
+                "filename": filename,
+                "content_type": content_type,
+                "artifact": artifact,
+            },
+            daemon=True,
+        ).start()

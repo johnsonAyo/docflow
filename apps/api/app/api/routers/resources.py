@@ -165,20 +165,20 @@ async def retry_document_run(
                 },
             )
             raise HTTPException(status_code=500, detail=str(e))
-    else:
-        from app.worker import process_document_task
 
-        process_document_task.delay(
-            document_run_id=run_id,
-            workflow_id=workflow_id,
-            document_type=run["document_type"],
-            filename=filename,
-            content_type=content_type,
-            artifact=first_art,
-        )
-        return {
-            "document_run": run_store.get_item(run_id),
-            "artifact": first_art,
-            "record": None,
-            "review_state": None,
-        }
+    from app.worker import enqueue_document_task
+
+    enqueue_document_task(
+        document_run_id=run_id,
+        workflow_id=workflow_id,
+        document_type=run["document_type"],
+        filename=filename,
+        content_type=content_type,
+        artifact=first_art,
+    )
+    return {
+        "document_run": run_store.get_item(run_id),
+        "artifact": first_art,
+        "record": None,
+        "review_state": None,
+    }

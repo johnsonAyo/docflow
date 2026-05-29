@@ -101,7 +101,7 @@ class TesseractOCRProvider:
             )
         except FileNotFoundError:
             return self._dependency_issue(
-                "OCR engine unavailable. Install Tesseract or update DOCFLOW_TESSERACT_COMMAND."
+                "OCR engine unavailable in this environment. Install Tesseract or update DOCFLOW_TESSERACT_COMMAND to enable OCR; this document has been routed to review."
             )
         except subprocess.CalledProcessError as exc:
             return OcrResult(

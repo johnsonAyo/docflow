@@ -119,48 +119,32 @@ async def create_uploaded_document(
             )
             raise
 
-    try:
-        from app.worker import process_document_task
+    from app.worker import enqueue_document_task
 
-        process_document_task.delay(
-            document_run_id=document_run["id"],
-            workflow_id=workflow_id,
-            document_type=document_type,
-            filename=filenames[0],
-            content_type=content_types[0],
-            artifact=artifacts[0],
-        )
-    except Exception:
-        try:
-            processing = process_uploaded_document(
-                body=bodies[0],
-                filename=filenames[0],
-                content_type=content_types[0],
-                workflow_id=workflow_id,
-                document_type=document_type,
-                document_run_id=document_run["id"],
-                workflow_config=workflow["config"] if workflow is not None else {},
-                settings=settings,
-                document_store=store,
-                records=resource_stores["records"],
-                review_states=resource_stores["review_states"],
-                run_document_run=document_run,
-            )
-            return upload_response(
-                document_run, resource_stores["document_runs"], artifacts[0], processing
-            )
-        except Exception as e:
-            resource_stores["document_runs"].update_item(
-                document_run["id"],
-                {
-                    "status": "failed",
-                    "error": str(e),
+    enqueue_document_task(
+        document_run_id=document_run["id"],
+        workflow_id=workflow_id,
+        document_type=document_type,
+        filename=filenames[0],
+        content_type=content_types[0],
+        artifact=artifacts[0],
+    )
+
+    updated_run = resource_stores["document_runs"].update_item(
+        document_run["id"],
+        {
+            "metadata": {
+                **document_run["metadata"],
+                "processing": {
+                    "stage": "queued",
+                    "message": "OCR and extraction have been queued for background processing.",
                 },
-            )
-            raise
+            }
+        },
+    ) or document_run
 
     return {
-        "document_run": document_run,
+        "document_run": updated_run,
         "artifact": artifacts[0],
         "record": None,
         "review_state": None,
