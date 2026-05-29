@@ -26,8 +26,8 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
           title={props.title}
         />
       </div>
-      {props.title === "Review queue" ? <StateMessage state={props.reviewActionState} /> : null}
-      {props.title === "Integrations" ? <StateMessage state={props.deliveryState} /> : null}
+      {props.title === "Review queue" && props.reviewActionState.message ? <StateMessage state={props.reviewActionState} /> : null}
+      {props.title === "Integrations" && props.deliveryState.message ? <StateMessage state={props.deliveryState} /> : null}
       
       {(props.title === "Review queue" || props.title === "Process documents") && (
         <ActiveProcessingQueue
