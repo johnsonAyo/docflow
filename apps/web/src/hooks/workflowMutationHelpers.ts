@@ -6,6 +6,7 @@ import {
   updateRecord,
   updateReviewState,
   updateWorkflow,
+  updateDocumentRun,
 } from "@/api";
 import { workflowPayload } from "@/lib/workflowBuilderDefaults";
 import {
@@ -67,6 +68,8 @@ export async function approveReview(review: ReviewState) {
   if (review.record_id) {
     await updateRecord(review.record_id, { status: "approved" });
   }
+
+  await updateDocumentRun(review.document_run_id, { status: "approved" });
 
   return updatedReview;
 }

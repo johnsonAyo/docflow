@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 
 function getRoute() {
-  if (window.location.hash === "#/app" || window.location.pathname === "/app") {
+  const hash = window.location.hash;
+  if (hash.startsWith("#/report/")) {
+    return "report";
+  }
+  if (hash === "#/app" || window.location.pathname === "/app") {
     return "app";
   }
   return "landing";

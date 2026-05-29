@@ -12,5 +12,6 @@ export const idleDeliveryState: WorkflowSaveState = {
 
 export const idleReviewState: WorkflowSaveState = {
   status: "idle",
-  message: "Review actions are ready when review items exist.",
+  message: "",
 };
+

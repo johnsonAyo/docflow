@@ -85,3 +85,7 @@ class ResourceStore(ABC):
         self, item_id: str, updates: dict[str, Any]
     ) -> ResourceDocument | None:
         raise NotImplementedError
+
+    @abstractmethod
+    def delete_item(self, item_id: str) -> bool:
+        raise NotImplementedError

@@ -11,52 +11,113 @@ from app.services.document_processing import process_uploaded_document
 async def create_uploaded_document(
     *,
     document_type: str,
-    file: UploadFile,
     resource_stores: dict[str, ResourceStore],
     settings: Any,
     store: DocumentStore,
     workflow_id: str,
     workflow_store: WorkflowDefinitionStore,
+    file: UploadFile | None = None,
+    files: list[UploadFile] | None = None,
+    bundle_title: str | None = None,
 ) -> dict[str, Any]:
-    body = await file.read()
-    if not body:
-        raise MissingArtifactBodyError()
+    upload_files = []
+    if files:
+        upload_files.extend(files)
+    if file:
+        upload_files.append(file)
 
-    filename = file.filename or "document"
-    content_type = file.content_type or "application/octet-stream"
-    artifact = store.put_object(
-        artifact_key(f"uploads/{workflow_id}/originals", filename), body, content_type
-    )
-    document_run = create_document_run(
-        resource_stores["document_runs"],
-        workflow_id,
-        document_type,
-        filename,
-        content_type,
-        body,
-        artifact,
+    if not upload_files:
+        raise MissingArtifactBodyError("No files provided.")
+
+    artifacts = []
+    bodies = []
+    filenames = []
+    content_types = []
+
+    for f in upload_files:
+        body = await f.read()
+        if not body:
+            continue
+        fname = f.filename or "document"
+        ctype = f.content_type or "application/octet-stream"
+
+        artifact = store.put_object(
+            artifact_key(f"uploads/{workflow_id}/originals", fname), body, ctype
+        )
+        artifacts.append({**artifact, "kind": "original", "filename": fname})
+        bodies.append(body)
+        filenames.append(fname)
+        content_types.append(ctype)
+
+    if not artifacts:
+        raise MissingArtifactBodyError("No valid file content could be read.")
+
+    run_title = bundle_title or filenames[0]
+    bundle_metadata = {
+        "files": [
+            {
+                "filename": fname,
+                "content_type": ctype,
+                "size_bytes": len(b),
+            }
+            for fname, ctype, b in zip(filenames, content_types, bodies)
+        ]
+    }
+
+    document_run = resource_stores["document_runs"].create_item(
+        {
+            "workflow_id": workflow_id,
+            "document_name": run_title,
+            "document_type": document_type,
+            "status": "uploaded",
+            "artifacts": artifacts,
+            "error": None,
+            "metadata": {
+                "bundle": bundle_metadata,
+                "upload": {
+                    "filename": run_title,
+                    "content_type": content_types[0],
+                    "size_bytes": sum(len(b) for b in bodies),
+                },
+                "processing": {
+                    "stage": "uploaded",
+                    "message": "Original bundle documents stored. OCR processing has not started.",
+                },
+            },
+        }
     )
     workflow = workflow_store.get_workflow(workflow_id)
 
     use_celery_worker = getattr(settings, "use_celery_worker", False) is True
 
     if not use_celery_worker:
-        processing = process_uploaded_document(
-            body=body,
-            filename=filename,
-            content_type=content_type,
-            workflow_id=workflow_id,
-            document_type=document_type,
-            document_run_id=document_run["id"],
-            workflow_config=workflow["config"] if workflow is not None else {},
-            settings=settings,
-            document_store=store,
-            records=resource_stores["records"],
-            review_states=resource_stores["review_states"],
-        )
-        return upload_response(
-            document_run, resource_stores["document_runs"], artifact, processing
-        )
+        try:
+            processing = process_uploaded_document(
+                body=bodies[0],
+                filename=filenames[0],
+                content_type=content_types[0],
+                workflow_id=workflow_id,
+                document_type=document_type,
+                document_run_id=document_run["id"],
+                workflow_config=workflow["config"] if workflow is not None else {},
+                settings=settings,
+                document_store=store,
+                records=resource_stores["records"],
+                review_states=resource_stores["review_states"],
+                run_document_run=document_run,
+            )
+            return upload_response(
+                document_run, resource_stores["document_runs"], artifacts[0], processing
+            )
+        except Exception as e:
+            resource_stores["document_runs"].update_item(
+                document_run["id"],
+                {
+                    "status": "failed",
+                    "error": str(e),
+                }
+            )
+            raise
 
     try:
         from app.worker import process_document_task
@@ -65,31 +126,42 @@ async def create_uploaded_document(
             document_run_id=document_run["id"],
             workflow_id=workflow_id,
             document_type=document_type,
-            filename=filename,
-            content_type=content_type,
-            artifact=artifact,
+            filename=filenames[0],
+            content_type=content_types[0],
+            artifact=artifacts[0],
         )
     except Exception:
-        processing = process_uploaded_document(
-            body=body,
-            filename=filename,
-            content_type=content_type,
-            workflow_id=workflow_id,
-            document_type=document_type,
-            document_run_id=document_run["id"],
-            workflow_config=workflow["config"] if workflow is not None else {},
-            settings=settings,
-            document_store=store,
-            records=resource_stores["records"],
-            review_states=resource_stores["review_states"],
-        )
-        return upload_response(
-            document_run, resource_stores["document_runs"], artifact, processing
-        )
+        try:
+            processing = process_uploaded_document(
+                body=bodies[0],
+                filename=filenames[0],
+                content_type=content_types[0],
+                workflow_id=workflow_id,
+                document_type=document_type,
+                document_run_id=document_run["id"],
+                workflow_config=workflow["config"] if workflow is not None else {},
+                settings=settings,
+                document_store=store,
+                records=resource_stores["records"],
+                review_states=resource_stores["review_states"],
+                run_document_run=document_run,
+            )
+            return upload_response(
+                document_run, resource_stores["document_runs"], artifacts[0], processing
+            )
+        except Exception as e:
+            resource_stores["document_runs"].update_item(
+                document_run["id"],
+                {
+                    "status": "failed",
+                    "error": str(e),
+                }
+            )
+            raise
 
     return {
         "document_run": document_run,
-        "artifact": artifact,
+        "artifact": artifacts[0],
         "record": None,
         "review_state": None,
     }

@@ -40,3 +40,21 @@ export async function updateReviewState(
 
   return parseJsonResponse<ReviewState>(response, "Could not update review state");
 }
+
+export async function deleteRecord(recordId: string): Promise<void> {
+  const response = await fetch(`${API_V1_URL}/records/${recordId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Could not delete record");
+  }
+}
+
+export async function deleteReviewState(reviewStateId: string): Promise<void> {
+  const response = await fetch(`${API_V1_URL}/review-states/${reviewStateId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("Could not delete review state");
+  }
+}

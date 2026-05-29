@@ -56,6 +56,32 @@ class FakeResourceStore:
         self.created.append(saved)
         return saved
 
+    def update_item(self, item_id, updates):
+        for index, document in enumerate(self.created):
+            if document["id"] == item_id:
+                self.created[index] = {**document, **updates}
+                return self.created[index]
+        return None
+
+    def get_item(self, item_id: str):
+        for document in self.created:
+            if document["id"] == item_id:
+                return document
+        return None
+
+    def delete_item(self, item_id: str) -> bool:
+        initial_len = len(self.created)
+        self.created = [item for item in self.created if item["id"] != item_id]
+        return len(self.created) < initial_len
+
+    def list_items(self, filters=None):
+        filters = filters or {}
+        return [
+            document
+            for document in self.created
+            if all(document.get(key) == value for key, value in filters.items())
+        ]
+
 
 class FakeSettings:
     tesseract_command = "missing-tesseract"

@@ -24,8 +24,8 @@ export function UploadQueueList({ queue }: UploadQueueListProps) {
             <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
               {statusIcon(job.status)}
               <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <span style={{ fontWeight: 500, fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.file.name}</span>
-                <span style={{ fontSize: "0.8rem", color: "#666" }}>{job.progressMessage}</span>
+                <span style={{ fontWeight: 500, fontSize: "var(--font-size-md)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.file.name}</span>
+                <span style={{ fontSize: "var(--font-size-sm)", color: "#666" }}>{job.progressMessage}</span>
               </div>
             </div>
             <button className="icon-row-action danger" type="button" aria-label={`Remove ${job.file.name}`} onClick={() => queue.removeJob(job.id)}><XCircle size={16} aria-hidden="true" /></button>

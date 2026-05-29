@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { uploadDocument, API_V1_URL, parseJsonResponse } from "@/api";
 import { DocumentRun } from "@/types";
 
@@ -15,6 +16,7 @@ export type UploadJob = {
 };
 
 export function useUploadQueue() {
+  const queryClient = useQueryClient();
   const [jobs, setJobs] = useState<UploadJob[]>([]);
 
   const queueFiles = useCallback((files: File[], workflowId: string, documentType: string) => {
@@ -92,8 +94,14 @@ export function useUploadQueue() {
           
           if (run.status === "needs_review" || run.status === "approved") {
             updateJob(job.id, { status: "completed", progressMessage: "Processing complete!" });
+            queryClient.invalidateQueries({ queryKey: ["documentRuns"] });
+            queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
+            queryClient.invalidateQueries({ queryKey: ["records"] });
           } else if (run.status === "failed") {
             updateJob(job.id, { status: "error", progressMessage: run.error || "Processing failed." });
+            queryClient.invalidateQueries({ queryKey: ["documentRuns"] });
+            queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
+            queryClient.invalidateQueries({ queryKey: ["records"] });
           }
           // Otherwise it remains processing
         } catch (error) {
@@ -103,7 +111,7 @@ export function useUploadQueue() {
     }, 3000); // Poll every 3 seconds
 
     return () => clearInterval(intervalId);
-  }, [jobs, updateJob]);
+  }, [jobs, updateJob, queryClient]);
 
   return {
     jobs,

@@ -44,13 +44,15 @@ export function useWorkflowMutations({
   const uploadDocumentMutation = useMutation({
     mutationFn: (formData: FormData) => uploadDocument(formData),
     onSuccess: (_result, variables) => {
-      const file = variables.get("file") as File;
+      const bundleTitle = variables.get("bundle_title") as string | null;
+      const file = (variables.get("file") || variables.get("files")) as File | null;
+      const displayName = bundleTitle ? `bundle "${bundleTitle}"` : file?.name ? `"${file.name}"` : "document";
       invalidateDocumentData(queryClient);
       setUploadState({
         status: "saved",
-        message: `Successfully uploaded ${file.name}. It will be processed shortly.`,
+        message: `Successfully uploaded ${displayName}. It will be processed shortly.`,
       });
-      setToastMessage({ message: `Document ${file.name} uploaded successfully!`, type: "success" });
+      setToastMessage({ message: `Document ${displayName} uploaded successfully!`, type: "success" });
     },
     onError: (error: unknown) => {
       showStateError(error, "Upload failed.", setUploadState, setToastMessage);

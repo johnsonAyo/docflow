@@ -24,7 +24,7 @@ export function AppToast({ message, type, onClose }: AppToastProps) {
       maxWidth: "400px",
       animation: "slideIn 0.3s ease-out forwards"
     }}>
-      <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 500 }}>{message}</p>
+      <p style={{ margin: 0, fontSize: "var(--font-size-sm)", fontWeight: 500 }}>{message}</p>
       <button
         onClick={onClose}
         style={{

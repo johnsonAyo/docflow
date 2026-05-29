@@ -15,10 +15,11 @@ export function buildWorkspaceItems(
 ): Record<Exclude<AppSection, "Workflows">, WorkspaceItem[]> {
   const activeRuns = documentRuns.filter(isActiveRun);
   const openReviews = reviewStates.filter((review) => review.status === "open");
+  const approvedRecords = records.filter((rec) => rec.status === "approved" || rec.status === "exported");
   return {
     "Process documents": activeRuns.map((run) => mapRunItem(run, workflows)),
     "Review queue": openReviews.map((review) => mapReviewItem(review, documentRuns, workflows)),
-    Records: records.map((record) => mapRecordItem(record, documentRuns, workflows)),
+    Records: approvedRecords.map((record) => mapRecordItem(record, documentRuns, workflows)),
     Integrations: [],
   };
 }
@@ -72,5 +73,5 @@ function fieldDisplay(fields: Array<Record<string, unknown>>) {
 }
 
 function isActiveRun(run: DocumentRun) {
-  return run.status === "uploaded" || run.status === "processing" || run.status === "failed";
+  return run.status === "failed";
 }

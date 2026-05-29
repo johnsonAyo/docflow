@@ -1,6 +1,7 @@
 import { type FormEvent } from "react";
 import {
   AppSection,
+  DocumentRun,
   WorkflowDefinition,
   WorkflowSaveState,
   WorkspaceItem,
@@ -12,6 +13,7 @@ export type WorkspaceSectionTitle = Exclude<AppSection, "Workflows">;
 export type WorkspaceSectionViewProps = {
   title: WorkspaceSectionTitle;
   savedWorkflows: WorkflowDefinition[];
+  documentRuns: DocumentRun[];
   uploadState: WorkflowSaveState;
   deliveryState: WorkflowSaveState;
   reviewActionState: WorkflowSaveState;
@@ -27,8 +29,10 @@ export type WorkspaceSectionViewProps = {
   isApprovingReview: boolean;
   runWorkflowId: string;
   setRunWorkflowId: (id: string) => void;
-  onUploadDocument: (event: FormEvent<HTMLFormElement>) => void;
+  onUploadDocument: (eventOrData: any) => void;
   onExportRecords: () => void;
   onTestWebhook: () => void;
   onOpenReviewItem: (reviewId: string) => void;
+  onOpenRun?: (runId: string) => void;
+  onDeleteItem?: (itemId: string) => void;
 };

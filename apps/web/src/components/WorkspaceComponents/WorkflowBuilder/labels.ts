@@ -22,7 +22,7 @@ export const builderLabels = {
           type: "Document type",
           typeOptions: ["Contract", "Invoice", "Vendor form"],
           source: "Intake source",
-          sourceOptions: ["Shared inbox", "Manual upload", "API upload"],
+          sourceOptions: ["Direct upload", "Shared inbox", "API upload"],
           summary: "Workflow summary"
         }
       },

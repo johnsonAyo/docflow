@@ -35,9 +35,9 @@ export class ErrorBoundary extends Component<Props, State> {
         <div style={{ padding: "2rem", border: "1px solid #ffcccc", borderRadius: "8px", background: "#fff5f5", color: "#cc0000", margin: "1rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <AlertCircle size={24} />
-            <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Something went wrong</h2>
+            <h2 style={{ margin: 0, fontSize: "var(--font-size-lg)" }}>Something went wrong</h2>
           </div>
-          <p style={{ margin: 0, fontSize: "0.9rem", fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+          <p style={{ margin: 0, fontSize: "var(--font-size-md)", fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
             {this.state.error?.toString()}
           </p>
         </div>

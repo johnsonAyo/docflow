@@ -3,10 +3,9 @@ from celery import Celery
 from app.api.routers.document_uploads import upload_response
 from app.core.settings import load_settings
 from app.infrastructure.document_store import create_document_store
-from app.infrastructure.mongodb import get_database, get_mongodb_client
 from app.infrastructure.repositories import (
-    MongoResourceStore,
-    MongoWorkflowDefinitionStore,
+    create_resource_stores,
+    create_workflow_store,
 )
 from app.services.document_processing import process_uploaded_document
 
@@ -24,29 +23,28 @@ def process_document_task(
     artifact: dict,
 ):
     # Initialize dependencies
-    client = get_mongodb_client(settings)
-    db = get_database(client, settings)
-
-    resource_stores = {
-        "document_runs": MongoResourceStore(
-            db, settings.mongodb_document_runs_collection
-        ),
-        "records": MongoResourceStore(db, settings.mongodb_records_collection),
-        "review_states": MongoResourceStore(
-            db, settings.mongodb_review_states_collection
-        ),
-        "action_history": MongoResourceStore(
-            db, settings.mongodb_action_history_collection
-        ),
-    }
-    workflow_store = MongoWorkflowDefinitionStore(
-        db, settings.mongodb_workflows_collection
-    )
+    resource_stores = create_resource_stores(settings)
+    workflow_store, _ = create_workflow_store(settings)
     store, _ = create_document_store(settings)
 
     document_run = resource_stores["document_runs"].get_item(document_run_id)
     if not document_run:
         return
+
+    # Update status to processing
+    document_run = resource_stores["document_runs"].update_item(
+        document_run_id,
+        {
+            "status": "processing",
+            "metadata": {
+                **document_run.get("metadata", {}),
+                "processing": {
+                    "stage": "processing",
+                    "message": "OCR and field extraction in progress.",
+                },
+            },
+        },
+    ) or document_run
 
     workflow = workflow_store.get_workflow(workflow_id)
 
@@ -69,14 +67,15 @@ def process_document_task(
             document_store=store,
             records=resource_stores["records"],
             review_states=resource_stores["review_states"],
+            run_document_run=document_run,
         )
 
         upload_response(
             document_run, resource_stores["document_runs"], artifact, processing
         )
     except Exception as e:
-        # Update run status to error
+        # Update run status to failed
         resource_stores["document_runs"].update_item(
-            document_run_id, {"status": "error", "error": str(e)}
+            document_run_id, {"status": "failed", "error": str(e)}
         )
         raise

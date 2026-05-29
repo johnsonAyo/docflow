@@ -49,7 +49,7 @@ export const workspaceComponentsLabels = {
           type: "Document type",
           typeOptions: ["Contract", "Invoice", "Vendor form"],
           source: "Intake source",
-          sourceOptions: ["Shared inbox", "Manual upload", "API upload"],
+          sourceOptions: ["Direct upload", "Shared inbox", "API upload"],
           summary: "Workflow summary"
         }
       },
@@ -163,20 +163,14 @@ export const workspaceSectionContent: Record<Exclude<AppSection, "Workflows">, W
     kicker: "Structured records",
     title: "Browse approved extracted data with traceable evidence",
     description: "Records should be searchable by workflow, status, confidence, document type, date, and source document.",
-    actions: [
-      { label: "Export CSV", intent: "primary" },
-      { label: "View record detail", intent: "secondary" },
-    ],
+    actions: [],
     items: []
   },
   Integrations: {
     kicker: "Delivery",
     title: "Send approved records where the business already works",
     description: "CSV, API, and webhook are the first integrations because they prove interoperability without paid services.",
-    actions: [
-      { label: "Test webhook", intent: "primary" },
-      { label: "Configure CSV", intent: "secondary" },
-    ],
+    actions: [],
     items: []
   },
 };

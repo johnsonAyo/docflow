@@ -25,6 +25,13 @@ class TesseractOCRProvider:
     def extract_text(
         self, *, body: bytes, filename: str, content_type: str
     ) -> OcrResult:
+        from app.services.document_text import is_text_document, decode_text
+        if is_text_document(filename, content_type):
+            return OcrResult(
+                text=decode_text(body),
+                issues=[],
+                provider="text_upload",
+            )
         if is_pdf(filename, content_type):
             return self._extract_pdf(body)
         if is_image(filename, content_type):

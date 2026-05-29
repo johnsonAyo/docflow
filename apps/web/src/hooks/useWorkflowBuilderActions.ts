@@ -59,19 +59,25 @@ export function useWorkflowBuilderActions({
     workflowMutations.publishMutation.mutate();
   }
 
-  function uploadDocument(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const file = formData.get("file") as File | null;
+  function uploadDocument(eventOrData: FormEvent<HTMLFormElement> | FormData) {
+    let formData: FormData;
+    let resetForm = () => {};
 
-    if (!file || file.size === 0) {
-      setUploadState({ status: "error", message: "Please select a file to upload." });
-      return;
+    if (eventOrData instanceof FormData) {
+      formData = eventOrData;
+    } else {
+      eventOrData.preventDefault();
+      formData = new FormData(eventOrData.currentTarget);
+      const target = eventOrData.currentTarget;
+      resetForm = () => target.reset();
     }
 
     setUploadState({ status: "saving", message: "Uploading document..." });
     workflowMutations.uploadDocumentMutation.mutate(formData, {
-      onSuccess: () => event.currentTarget.reset(),
+      onSuccess: () => {
+        resetForm();
+        setActiveSection("Review queue");
+      },
     });
   }
 

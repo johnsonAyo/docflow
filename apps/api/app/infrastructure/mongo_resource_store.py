@@ -43,6 +43,10 @@ class MongoResourceStore(ResourceStore):
         self.collection.update_one({"_id": item_id}, {"$set": updates})
         return self.get_item(item_id)
 
+    def delete_item(self, item_id: str) -> bool:
+        result = self.collection.delete_one({"_id": item_id})
+        return result.deleted_count > 0
+
     def _from_mongo(self, document: ResourceDocument | None) -> ResourceDocument:
         if document is None:
             raise RuntimeError("Expected MongoDB document")

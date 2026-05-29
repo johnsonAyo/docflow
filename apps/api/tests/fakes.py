@@ -34,6 +34,12 @@ class FakeResourceStore:
                 return self.created[index]
         return None
 
+    def get_item(self, item_id: str):
+        for document in self.created:
+            if document["id"] == item_id:
+                return document
+        return None
+
     def list_items(self, filters=None):
         filters = filters or {}
         return [
@@ -41,6 +47,11 @@ class FakeResourceStore:
             for document in self.created
             if all(document.get(key) == value for key, value in filters.items())
         ]
+
+    def delete_item(self, item_id: str) -> bool:
+        initial_len = len(self.created)
+        self.created = [item for item in self.created if item["id"] != item_id]
+        return len(self.created) < initial_len
 
 
 class FakeWorkflowStore:

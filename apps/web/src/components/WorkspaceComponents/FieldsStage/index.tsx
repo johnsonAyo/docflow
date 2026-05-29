@@ -32,7 +32,7 @@ export function FieldsStage({ fields, onAddField, onDeleteField, onPublishWorkfl
           ))}
         </div>
         {fields.length === 0 ? (
-          <div style={{ padding: "32px", textAlign: "center", color: "var(--muted)", fontSize: "0.9rem", background: "var(--surface-soft)", borderRadius: "0 0 var(--r-md) var(--r-md)" }}>
+          <div style={{ padding: "32px", textAlign: "center", color: "var(--muted)", fontSize: "var(--font-size-md)", background: "var(--surface-soft)", borderRadius: "0 0 var(--r-md) var(--r-md)" }}>
             No fields defined yet. Click "Add field" to build your extraction schema.
           </div>
         ) : (
