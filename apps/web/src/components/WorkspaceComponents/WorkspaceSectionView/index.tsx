@@ -12,7 +12,7 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
   const [hasSelectedFiles, setHasSelectedFiles] = useState(false);
 
   return (
-    <section className="workspace-section-page" aria-labelledby="workspace-section-title">
+    <section className="workspace-section-page" data-section={props.title} aria-labelledby="workspace-section-title">
       <div className="workspace-section-header">
         <div>
           <p className="app-kicker">{content.kicker}</p>

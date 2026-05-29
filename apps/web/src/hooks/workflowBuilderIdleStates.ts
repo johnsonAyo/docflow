@@ -7,7 +7,7 @@ export const idleUploadState: WorkflowSaveState = {
 
 export const idleDeliveryState: WorkflowSaveState = {
   status: "idle",
-  message: "Delivery actions are ready when records exist.",
+  message: "",
 };
 
 export const idleReviewState: WorkflowSaveState = {
