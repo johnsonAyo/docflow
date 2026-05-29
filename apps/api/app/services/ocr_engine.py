@@ -1,17 +1,25 @@
 from typing import Any
-from app.services.ocr_models import OCRProvider, ExtractionProvider, OcrResult, ExtractionResult
+
+from app.services.ocr_models import (
+    ExtractionProvider,
+    ExtractionResult,
+    OCRProvider,
+    OcrResult,
+)
 from app.services.ollama_provider import OllamaExtractionProvider  # noqa: F401
 from app.services.rule_based_provider import RuleBasedExtractionProvider  # noqa: F401
+from app.services.rule_extractors import extract_fields
 from app.services.tesseract_provider import (  # noqa: F401
     TesseractOCRProvider,
     is_image,
     is_pdf,
 )
-from app.services.rule_extractors import extract_fields
 
 
 class OcrEngine:
-    def __init__(self, ocr_provider: OCRProvider, extraction_provider: ExtractionProvider):
+    def __init__(
+        self, ocr_provider: OCRProvider, extraction_provider: ExtractionProvider
+    ):
         self.ocr_provider = ocr_provider
         self.extraction_provider = extraction_provider
 
@@ -49,4 +57,3 @@ def get_ocr_engine(settings: Any, fallback: bool = False) -> OcrEngine:
             pass
     extraction_provider = RuleBasedExtractionProvider(extract_fields)
     return OcrEngine(ocr_provider, extraction_provider)
-

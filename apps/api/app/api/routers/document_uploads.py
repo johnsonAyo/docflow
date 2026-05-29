@@ -115,7 +115,7 @@ async def create_uploaded_document(
                 {
                     "status": "failed",
                     "error": str(e),
-                }
+                },
             )
             raise
 
@@ -155,7 +155,7 @@ async def create_uploaded_document(
                 {
                     "status": "failed",
                     "error": str(e),
-                }
+                },
             )
             raise
 

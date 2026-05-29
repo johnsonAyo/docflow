@@ -25,7 +25,8 @@ class TesseractOCRProvider:
     def extract_text(
         self, *, body: bytes, filename: str, content_type: str
     ) -> OcrResult:
-        from app.services.document_text import is_text_document, decode_text
+        from app.services.document_text import decode_text, is_text_document
+
         if is_text_document(filename, content_type):
             return OcrResult(
                 text=decode_text(body),

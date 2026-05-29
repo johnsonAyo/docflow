@@ -1,4 +1,5 @@
 from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.routers.document_dependencies import (
@@ -8,8 +9,6 @@ from app.api.routers.document_dependencies import (
     get_workflow_store,
 )
 from app.api.routers.resource_helpers import get_store
-from app.infrastructure.repositories import ResourceStore, WorkflowDefinitionStore
-from app.infrastructure.document_store import DocumentStore
 from app.api.routers.resource_route_factory import add_resource_routes
 from app.domain.models import (
     ActionHistoryCreate,
@@ -27,6 +26,8 @@ from app.domain.models import (
     ReviewStateResponse,
     ReviewStateUpdate,
 )
+from app.infrastructure.document_store import DocumentStore
+from app.infrastructure.repositories import ResourceStore, WorkflowDefinitionStore
 
 router = APIRouter(tags=["metadata"])
 
@@ -94,9 +95,13 @@ async def retry_document_run(
     if not run:
         raise HTTPException(status_code=404, detail="Document run not found")
 
-    original_artifacts = [art for art in run.get("artifacts", []) if art.get("kind") == "original"]
+    original_artifacts = [
+        art for art in run.get("artifacts", []) if art.get("kind") == "original"
+    ]
     if not original_artifacts:
-        raise HTTPException(status_code=400, detail="Original document artifacts not found")
+        raise HTTPException(
+            status_code=400, detail="Original document artifacts not found"
+        )
 
     workflow_id = run["workflow_id"]
     workflow = workflow_store.get_workflow(workflow_id)
@@ -126,12 +131,13 @@ async def retry_document_run(
             "status": "uploaded",
             "error": None,
             "metadata": metadata,
-        }
+        },
     )
 
     use_celery_worker = getattr(settings, "use_celery_worker", False) is True
     if not use_celery_worker:
         from app.services.document_processing import process_uploaded_document
+
         try:
             processing = process_uploaded_document(
                 body=body,
@@ -148,20 +154,20 @@ async def retry_document_run(
                 run_document_run=run,
             )
             from app.api.routers.document_uploads import upload_response
-            return upload_response(
-                run, run_store, first_art, processing
-            )
+
+            return upload_response(run, run_store, first_art, processing)
         except Exception as e:
             run_store.update_item(
                 run_id,
                 {
                     "status": "failed",
                     "error": str(e),
-                }
+                },
             )
             raise HTTPException(status_code=500, detail=str(e))
     else:
         from app.worker import process_document_task
+
         process_document_task.delay(
             document_run_id=run_id,
             workflow_id=workflow_id,
@@ -176,4 +182,3 @@ async def retry_document_run(
             "record": None,
             "review_state": None,
         }
-

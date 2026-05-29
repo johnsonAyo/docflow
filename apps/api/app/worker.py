@@ -32,19 +32,22 @@ def process_document_task(
         return
 
     # Update status to processing
-    document_run = resource_stores["document_runs"].update_item(
-        document_run_id,
-        {
-            "status": "processing",
-            "metadata": {
-                **document_run.get("metadata", {}),
-                "processing": {
-                    "stage": "processing",
-                    "message": "OCR and field extraction in progress.",
+    document_run = (
+        resource_stores["document_runs"].update_item(
+            document_run_id,
+            {
+                "status": "processing",
+                "metadata": {
+                    **document_run.get("metadata", {}),
+                    "processing": {
+                        "stage": "processing",
+                        "message": "OCR and field extraction in progress.",
+                    },
                 },
             },
-        },
-    ) or document_run
+        )
+        or document_run
+    )
 
     workflow = workflow_store.get_workflow(workflow_id)
 

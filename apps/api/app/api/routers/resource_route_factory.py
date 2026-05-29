@@ -53,6 +53,7 @@ def add_resource_routes(
         stores: dict[str, ResourceStore] = Depends(get_resource_stores),
     ) -> dict[str, Any]:
         from fastapi import HTTPException
+
         store = get_store(stores, collection)
         item = store.get_item(resource_id)
         if not item:
@@ -76,6 +77,7 @@ def add_resource_routes(
         stores: dict[str, ResourceStore] = Depends(get_resource_stores),
     ) -> None:
         from fastapi import HTTPException
+
         store = get_store(stores, collection)
         if not store.delete_item(resource_id):
             raise HTTPException(status_code=404, detail=f"{resource_name} not found")

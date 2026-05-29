@@ -1,6 +1,16 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status, HTTPException, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 
 from app.api.routers.document_dependencies import (
     get_document_store,
@@ -80,6 +90,7 @@ async def upload_document(
 
     if not upload_files:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=400, detail="No files uploaded.")
 
     return await create_uploaded_document(

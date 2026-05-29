@@ -26,16 +26,22 @@ def process_uploaded_document(
     # 1. Determine files to process
     originals = []
     if run_document_run:
-        originals = [art for art in run_document_run.get("artifacts", []) if art.get("kind") == "original"]
+        originals = [
+            art
+            for art in run_document_run.get("artifacts", [])
+            if art.get("kind") == "original"
+        ]
 
     if not originals:
         # Fall back to single file for backward compatibility (e.g. tests)
-        originals = [{
-            "key": f"uploads/{workflow_id}/originals/{filename}",
-            "filename": filename,
-            "content_type": content_type,
-            "body": body
-        }]
+        originals = [
+            {
+                "key": f"uploads/{workflow_id}/originals/{filename}",
+                "filename": filename,
+                "content_type": content_type,
+                "body": body,
+            }
+        ]
 
     all_fields = []
     all_issues = []
@@ -47,7 +53,7 @@ def process_uploaded_document(
     for art in originals:
         fname = art.get("filename", filename)
         ctype = art.get("content_type", content_type)
-        
+
         fbody = art.get("body")
         if fbody is None:
             # Download from store
@@ -91,11 +97,13 @@ def process_uploaded_document(
             all_issues.append(issue)
 
         if not ocr_res.text:
-            all_issues.append({
-                "field": "OCR",
-                "message": f"No text could be extracted for {fname}.",
-                "filename": fname,
-            })
+            all_issues.append(
+                {
+                    "field": "OCR",
+                    "message": f"No text could be extracted for {fname}.",
+                    "filename": fname,
+                }
+            )
             continue
 
         # Save OCR text to store
@@ -107,13 +115,15 @@ def process_uploaded_document(
             ocr_res.text.encode("utf-8"),
             "text/plain",
         )
-        all_ocr_artifacts.append({**text_artifact, "kind": "ocr_text", "filename": fname})
+        all_ocr_artifacts.append(
+            {**text_artifact, "kind": "ocr_text", "filename": fname}
+        )
 
         # Tag extracted fields and issues with filename
         for field in ext_res.fields:
             field["filename"] = fname
             all_fields.append(field)
-            
+
         for issue in ext_res.issues:
             issue["filename"] = fname
             all_issues.append(issue)
@@ -134,29 +144,37 @@ def process_uploaded_document(
         )
 
     # Store record and review state
-    record = records.create_item({
-        "workflow_id": workflow_id,
-        "document_run_id": document_run_id,
-        "status": "needs_review" if all_issues or avg_confidence < 0.82 else "approved",
-        "fields": all_fields,
-        "confidence": avg_confidence,
-        "evidence_refs": all_ocr_artifacts,
-        "metadata": {
-            "ocr_provider": ocr_provider_str,
-            "extraction_provider": extraction_provider_str,
-            "ollama_model": settings.ollama_model if "ollama" in extraction_provider_str else None,
+    record = records.create_item(
+        {
+            "workflow_id": workflow_id,
+            "document_run_id": document_run_id,
+            "status": "needs_review"
+            if all_issues or avg_confidence < 0.82
+            else "approved",
+            "fields": all_fields,
+            "confidence": avg_confidence,
+            "evidence_refs": all_ocr_artifacts,
+            "metadata": {
+                "ocr_provider": ocr_provider_str,
+                "extraction_provider": extraction_provider_str,
+                "ollama_model": settings.ollama_model
+                if "ollama" in extraction_provider_str
+                else None,
+            },
         }
-    })
+    )
 
-    review_state = review_states.create_item({
-        "workflow_id": workflow_id,
-        "document_run_id": document_run_id,
-        "record_id": record["id"],
-        "status": "open" if all_issues else "resolved",
-        "issues": all_issues,
-        "assigned_to": "Operations" if all_issues else None,
-        "decisions": [],
-    })
+    review_state = review_states.create_item(
+        {
+            "workflow_id": workflow_id,
+            "document_run_id": document_run_id,
+            "record_id": record["id"],
+            "status": "open" if all_issues else "resolved",
+            "issues": all_issues,
+            "assigned_to": "Operations" if all_issues else None,
+            "decisions": [],
+        }
+    )
 
     return {
         "status": "needs_review" if all_issues else "approved",
