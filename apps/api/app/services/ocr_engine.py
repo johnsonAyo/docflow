@@ -6,6 +6,7 @@ from app.services.ocr_models import (
     OCRProvider,
     OcrResult,
 )
+from app.services.google_vision_provider import GoogleVisionOCRProvider
 from app.services.ollama_provider import OllamaExtractionProvider  # noqa: F401
 from app.services.rule_based_provider import RuleBasedExtractionProvider  # noqa: F401
 from app.services.rule_extractors import extract_fields
@@ -44,7 +45,7 @@ class OcrEngine:
 
 
 def get_ocr_engine(settings: Any, fallback: bool = False) -> OcrEngine:
-    ocr_provider = TesseractOCRProvider(settings.tesseract_command)
+    ocr_provider = get_ocr_provider(settings)
     if not fallback:
         try:
             extraction_provider = OllamaExtractionProvider(
@@ -57,3 +58,14 @@ def get_ocr_engine(settings: Any, fallback: bool = False) -> OcrEngine:
             pass
     extraction_provider = RuleBasedExtractionProvider(extract_fields)
     return OcrEngine(ocr_provider, extraction_provider)
+
+
+def get_ocr_provider(settings: Any) -> OCRProvider:
+    provider = getattr(settings, "ocr_provider", "tesseract").strip().lower()
+    tesseract_provider = TesseractOCRProvider(settings.tesseract_command)
+    if provider in {"google", "google_vision", "cloud_vision"}:
+        return GoogleVisionOCRProvider(
+            credentials_json=getattr(settings, "google_application_credentials_json", None),
+            fallback_provider=tesseract_provider,
+        )
+    return tesseract_provider

@@ -1,7 +1,8 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { CreateWorkflowPanel } from "@/components/WorkspaceComponents/CreateWorkflowPanel";
+import { OperationsDashboard } from "@/components/WorkspaceComponents/OperationsDashboard";
 import { overviewLabels } from "./labels";
-import { WorkflowDefinition } from "@/types";
+import { DocumentRun, ExtractedRecord, ReviewState, WorkflowDefinition } from "@/types";
 
 interface WorkflowOverviewProps {
   isDeletingWorkflow?: boolean;
@@ -10,6 +11,9 @@ interface WorkflowOverviewProps {
   onOpenWorkflow: (workflowId: string) => void;
   onRunWorkflow: (workflowId: string) => void;
   savedWorkflows: WorkflowDefinition[];
+  documentRuns: DocumentRun[];
+  records: ExtractedRecord[];
+  reviewStates: ReviewState[];
 }
 
 export function WorkflowOverview({
@@ -17,6 +21,9 @@ export function WorkflowOverview({
   onCreateWorkflow,
   onDeleteWorkflow,
   onOpenWorkflow,
+  documentRuns,
+  records,
+  reviewStates,
   savedWorkflows,
 }: WorkflowOverviewProps) {
   const workflowRows = savedWorkflows.map((workflow) => ({
@@ -28,7 +35,13 @@ export function WorkflowOverview({
   }));
 
   return (
-    <div className="workflow-home">
+    <div className="workflow-home workflow-home--dashboard">
+      <OperationsDashboard
+        savedWorkflows={savedWorkflows}
+        documentRuns={documentRuns}
+        records={records}
+        reviewStates={reviewStates}
+      />
       <section className="workflow-list-panel" aria-labelledby="published-workflows-title">
         <div className="builder-title-row">
           <div>

@@ -17,71 +17,40 @@ async def create_uploaded_document(
     workflow_id: str,
     workflow_store: WorkflowDefinitionStore,
     file: UploadFile | None = None,
-    files: list[UploadFile] | None = None,
-    bundle_title: str | None = None,
 ) -> dict[str, Any]:
-    upload_files = []
-    if files:
-        upload_files.extend(files)
-    if file:
-        upload_files.append(file)
+    if not file:
+        raise MissingArtifactBodyError("No file provided.")
 
-    if not upload_files:
-        raise MissingArtifactBodyError("No files provided.")
-
-    artifacts = []
-    bodies = []
-    filenames = []
-    content_types = []
-
-    for f in upload_files:
-        body = await f.read()
-        if not body:
-            continue
-        fname = f.filename or "document"
-        ctype = f.content_type or "application/octet-stream"
-
-        artifact = store.put_object(
-            artifact_key(f"uploads/{workflow_id}/originals", fname), body, ctype
-        )
-        artifacts.append({**artifact, "kind": "original", "filename": fname})
-        bodies.append(body)
-        filenames.append(fname)
-        content_types.append(ctype)
-
-    if not artifacts:
+    body = await file.read()
+    if not body:
         raise MissingArtifactBodyError("No valid file content could be read.")
 
-    run_title = bundle_title or filenames[0]
-    bundle_metadata = {
-        "files": [
-            {
-                "filename": fname,
-                "content_type": ctype,
-                "size_bytes": len(b),
-            }
-            for fname, ctype, b in zip(filenames, content_types, bodies)
-        ]
-    }
+    filename = file.filename or "document"
+    content_type = file.content_type or "application/octet-stream"
+    artifact = store.put_object(
+        artifact_key(f"uploads/{workflow_id}/originals", filename),
+        body,
+        content_type,
+    )
+    original_artifact = {**artifact, "kind": "original", "filename": filename}
 
     document_run = resource_stores["document_runs"].create_item(
         {
             "workflow_id": workflow_id,
-            "document_name": run_title,
+            "document_name": filename,
             "document_type": document_type,
             "status": "uploaded",
-            "artifacts": artifacts,
+            "artifacts": [original_artifact],
             "error": None,
             "metadata": {
-                "bundle": bundle_metadata,
                 "upload": {
-                    "filename": run_title,
-                    "content_type": content_types[0],
-                    "size_bytes": sum(len(b) for b in bodies),
+                    "filename": filename,
+                    "content_type": content_type,
+                    "size_bytes": len(body),
                 },
                 "processing": {
                     "stage": "uploaded",
-                    "message": "Original bundle documents stored. OCR processing has not started.",
+                    "message": "Original document stored. OCR processing has not started.",
                 },
             },
         }
@@ -93,9 +62,9 @@ async def create_uploaded_document(
     if not use_celery_worker:
         try:
             processing = process_uploaded_document(
-                body=bodies[0],
-                filename=filenames[0],
-                content_type=content_types[0],
+                body=body,
+                filename=filename,
+                content_type=content_type,
                 workflow_id=workflow_id,
                 document_type=document_type,
                 document_run_id=document_run["id"],
@@ -107,7 +76,10 @@ async def create_uploaded_document(
                 run_document_run=document_run,
             )
             return upload_response(
-                document_run, resource_stores["document_runs"], artifacts[0], processing
+                document_run,
+                resource_stores["document_runs"],
+                original_artifact,
+                processing,
             )
         except Exception as e:
             resource_stores["document_runs"].update_item(
@@ -125,9 +97,9 @@ async def create_uploaded_document(
         document_run_id=document_run["id"],
         workflow_id=workflow_id,
         document_type=document_type,
-        filename=filenames[0],
-        content_type=content_types[0],
-        artifact=artifacts[0],
+        filename=filename,
+        content_type=content_type,
+        artifact=original_artifact,
     )
 
     updated_run = (
@@ -148,7 +120,7 @@ async def create_uploaded_document(
 
     return {
         "document_run": updated_run,
-        "artifact": artifacts[0],
+        "artifact": original_artifact,
         "record": None,
         "review_state": None,
     }

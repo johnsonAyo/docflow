@@ -6,6 +6,7 @@ import {
   WorkflowDefinition,
   WorkspaceItem,
 } from "@/types";
+import { isRecentlyActiveRun } from "./documentRunStatus";
 
 export function buildWorkspaceItems(
   documentRuns: DocumentRun[],
@@ -73,5 +74,5 @@ function fieldDisplay(fields: Array<Record<string, unknown>>) {
 }
 
 function isActiveRun(run: DocumentRun) {
-  return run.status === "failed";
+  return isRecentlyActiveRun(run);
 }

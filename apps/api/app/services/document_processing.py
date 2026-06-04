@@ -3,9 +3,10 @@ from typing import Any  # noqa: I001
 from app.infrastructure.document_store import DocumentStore, artifact_key
 from app.infrastructure.repositories import ResourceStore
 from app.services.document_processing_helpers import (
+    extract_structured_fields,
     ocr_review_result,
 )
-from app.services.ocr_engine import get_ocr_engine
+from app.services.ocr_engine import get_ocr_provider
 
 
 def process_uploaded_document(
@@ -23,7 +24,7 @@ def process_uploaded_document(
     review_states: ResourceStore,
     run_document_run: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    # 1. Determine files to process
+    # 1. Determine the original document artifact to process.
     originals = []
     if run_document_run:
         originals = [
@@ -63,29 +64,18 @@ def process_uploaded_document(
                 # If key is missing or not in MinIO yet, default to single body passed
                 fbody = body
 
-        # Try to process with Ollama first
-        try:
-            engine = get_ocr_engine(settings, fallback=False)
-            ocr_res, ext_res = engine.process(
-                body=fbody,
-                filename=fname,
-                content_type=ctype,
-                document_type=document_type,
-                schema_fields=workflow_config.get("fields", []),
-            )
-            extraction_provider = "ollama"
-        except Exception as exc:
-            # Fall back to RuleBased
-            engine = get_ocr_engine(settings, fallback=True)
-            ocr_res, ext_res = engine.process(
-                body=fbody,
-                filename=fname,
-                content_type=ctype,
-                document_type=document_type,
-                schema_fields=workflow_config.get("fields", []),
-            )
-            ext_res.issues.append({"field": "Extraction", "message": str(exc)})
-            extraction_provider = "rule_based_fallback"
+        ocr_provider = get_ocr_provider(settings)
+        ocr_res = ocr_provider.extract_text(
+            body=fbody,
+            filename=fname,
+            content_type=ctype,
+        )
+        extraction_provider, ext_res = extract_structured_fields(
+            document_type=document_type,
+            schema_fields=workflow_config.get("fields", []),
+            settings=settings,
+            text=ocr_res.text,
+        )
 
         all_ocr_providers.append(ocr_res.provider)
         all_extraction_providers.append(extraction_provider)
@@ -133,7 +123,7 @@ def process_uploaded_document(
     ocr_provider_str = ",".join(list(set(all_ocr_providers)))
     extraction_provider_str = ",".join(list(set(all_extraction_providers)))
 
-    # If OCR produced no text at all across the entire bundle, return ocr_review_result
+    # If OCR produced no text for the document, return ocr_review_result.
     if not all_ocr_artifacts:
         return ocr_review_result(
             document_run_id=document_run_id,

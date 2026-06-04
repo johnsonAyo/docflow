@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
 import { listDocumentRuns, listRecords, listReviewStates, listWorkflows } from "@/api";
+import { isRecentlyActiveRun } from "@/lib/documentRunStatus";
+import { DocumentRun } from "@/types";
 
-const STUCK_JOB_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-
-function isRunRecentlyActive(run: any) {
-  if (run.status !== "uploaded" && run.status !== "processing") return false;
-  const ageMs = Date.now() - new Date(run.created_at).getTime();
-  return ageMs < STUCK_JOB_TIMEOUT_MS;
+function terminalRunSignature(runs: DocumentRun[]) {
+  return runs
+    .filter((run) => run.status === "needs_review" || run.status === "approved" || run.status === "failed")
+    .map((run) => `${run.id}:${run.status}:${run.updated_at}`)
+    .sort()
+    .join("|");
 }
 
 export function useWorkflowData() {
@@ -19,25 +22,31 @@ export function useWorkflowData() {
     queryKey: ["documentRuns"],
     queryFn: () => listDocumentRuns(),
     refetchInterval: (query) => {
-      const runs = query.state.data as any[];
-      const hasActive = runs?.some(isRunRecentlyActive);
-      return hasActive ? 2000 : false;
+      const runs = query.state.data as DocumentRun[] | undefined;
+      const hasActive = runs?.some(isRecentlyActiveRun);
+      return hasActive ? 4000 : false;
     }
   });
 
-  const hasActiveRuns = documentRuns.some(isRunRecentlyActive);
+  const terminalSignature = useMemo(() => terminalRunSignature(documentRuns), [documentRuns]);
+  const previousTerminalSignature = useRef(terminalSignature);
 
-  const { data: records = [] } = useQuery({
+  const { data: records = [], refetch: refetchRecords } = useQuery({
     queryKey: ["records"],
     queryFn: () => listRecords(),
-    refetchInterval: hasActiveRuns ? 2000 : false,
   });
 
-  const { data: reviewStates = [] } = useQuery({
+  const { data: reviewStates = [], refetch: refetchReviewStates } = useQuery({
     queryKey: ["reviewStates"],
     queryFn: () => listReviewStates(),
-    refetchInterval: hasActiveRuns ? 2000 : false,
   });
+
+  useEffect(() => {
+    if (previousTerminalSignature.current === terminalSignature) return;
+    previousTerminalSignature.current = terminalSignature;
+    void refetchRecords();
+    void refetchReviewStates();
+  }, [refetchRecords, refetchReviewStates, terminalSignature]);
 
   return {
     savedWorkflows,
@@ -46,4 +55,3 @@ export function useWorkflowData() {
     reviewStates,
   };
 }
-

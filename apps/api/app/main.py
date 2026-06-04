@@ -14,6 +14,8 @@ from app.infrastructure.repositories import (
     create_resource_stores,
     create_workflow_store,
 )
+from app.services.google_vision_provider import probe_google_vision_dependencies
+from app.services.tesseract_provider import probe_ocr_dependencies
 
 
 def app_settings(app: FastAPI) -> AppSettings:
@@ -41,6 +43,7 @@ async def lifespan(app: FastAPI):
     workflow_definition_store, workflow_warning = create_workflow_store(settings)
     configured_resource_stores = create_resource_stores(settings)
     configured_document_store, document_warning = create_document_store(settings)
+    ocr_warnings = probe_configured_ocr(settings)
 
     app.state.settings = settings
     app.state.workflow_store = workflow_definition_store
@@ -48,9 +51,10 @@ async def lifespan(app: FastAPI):
     app.state.document_store = configured_document_store
     app.state.startup_warnings = [
         warning
-        for warning in (workflow_warning, document_warning)
+        for warning in (workflow_warning, document_warning, *ocr_warnings)
         if warning is not None
     ]
+    app.state.ocr_dependency_warnings = ocr_warnings
 
     yield
 
@@ -93,6 +97,7 @@ app.include_router(integrations.router, prefix="/api/v1")
 @app.head("/health")
 def health_check(request: Request) -> dict[str, object]:
     settings = app_settings(request.app)
+    ocr_dependency_warnings = getattr(request.app.state, "ocr_dependency_warnings", [])
     return {
         "ok": True,
         "service": "docflow-api",
@@ -102,4 +107,22 @@ def health_check(request: Request) -> dict[str, object]:
         "document_bucket": settings.document_bucket,
         "resource_collections": sorted(resource_stores(request.app).keys()),
         "startup_warnings": request.app.state.startup_warnings,
+        "ocr_dependencies": {
+            "provider": settings.ocr_provider,
+            "status": "ok" if not ocr_dependency_warnings else "degraded",
+            "warnings": ocr_dependency_warnings,
+        },
     }
+
+
+def probe_configured_ocr(settings: AppSettings) -> list[str]:
+    provider = settings.ocr_provider.strip().lower()
+    tesseract_warnings = probe_ocr_dependencies(settings.tesseract_command)
+    if provider in {"google", "google_vision", "cloud_vision"}:
+        google_warnings = probe_google_vision_dependencies(
+            settings.google_application_credentials_json
+        )
+        if google_warnings and not tesseract_warnings:
+            return google_warnings
+        return [*google_warnings, *tesseract_warnings]
+    return tesseract_warnings

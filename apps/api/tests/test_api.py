@@ -11,6 +11,7 @@ def mock_deps():
         patch("app.main.create_workflow_store") as mock_wfs,
         patch("app.main.create_resource_stores") as mock_rs,
         patch("app.main.create_document_store") as mock_ds,
+        patch("app.main.probe_ocr_dependencies") as mock_ocr_probe,
     ):
         mock_settings.return_value = MagicMock(
             mongodb_database="docflow",
@@ -25,6 +26,7 @@ def mock_deps():
             "action_history": MagicMock(name="mongodb"),
         }
         mock_ds.return_value = (MagicMock(name="s3"), None)
+        mock_ocr_probe.return_value = []
         yield
 
 
@@ -36,3 +38,4 @@ def test_health(mock_deps):
 
     assert response.status_code == 200
     assert response.json()["ok"] is True
+    assert response.json()["ocr_dependencies"]["status"] == "ok"

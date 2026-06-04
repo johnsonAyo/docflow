@@ -1,5 +1,5 @@
 import { type FormEvent } from "react";
-import { AppSection, WorkflowSaveState } from "@/types";
+import { AppSection, DocumentUploadResponse, WorkflowSaveState } from "@/types";
 
 type DraftActions = {
   createDraftWorkflow: (name?: string, documentType?: string) => void;
@@ -14,7 +14,7 @@ type DraftState = {
 type WorkflowMutations = {
   approveReviewItem: (reviewId: string) => void;
   publishMutation: { mutate: () => void };
-  uploadDocumentMutation: { mutate: (formData: FormData, options: { onSuccess: () => void }) => void };
+  uploadDocumentMutation: { mutate: (formData: FormData, options: { onSuccess: (result: DocumentUploadResponse) => void }) => void };
 };
 
 type WorkflowBuilderActionOptions = {
@@ -72,11 +72,11 @@ export function useWorkflowBuilderActions({
       resetForm = () => target.reset();
     }
 
-    setUploadState({ status: "saving", message: "Uploading document..." });
+    setActiveSection("Process documents");
+    setUploadState({ status: "saving", message: "Uploading document. Keep this page open while we create the processing run..." });
     workflowMutations.uploadDocumentMutation.mutate(formData, {
       onSuccess: () => {
         resetForm();
-        setActiveSection("Review queue");
       },
     });
   }

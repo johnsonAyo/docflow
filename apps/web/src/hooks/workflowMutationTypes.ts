@@ -1,6 +1,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import {
   AppField,
+  DocumentRun,
   ReviewState,
   WorkflowDefinition,
   WorkflowDraft,
@@ -19,6 +20,7 @@ export type WorkflowMutationOptions = {
   setReviewActionState: Dispatch<SetStateAction<WorkflowSaveState>>;
   setSaveState: Dispatch<SetStateAction<WorkflowSaveState>>;
   setToastMessage: Dispatch<SetStateAction<ToastMessage>>;
+  setLastUploadedRun: Dispatch<SetStateAction<DocumentRun | null>>;
   setUploadState: Dispatch<SetStateAction<WorkflowSaveState>>;
   workflowDraft: WorkflowDraft;
 };

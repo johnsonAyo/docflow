@@ -1,7 +1,7 @@
 services:
   mongodb:
     image: mongo:7
-    container_name: docflow-mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -9,7 +9,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: docflow-minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -22,13 +22,76 @@ services:
 
   redis:
     image: redis:7
-    container_name: docflow-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - docflow-redis:/data
 
+  api:
+    build:
+      context: ./apps/api
+    restart: unless-stopped
+    environment:
+      DOCFLOW_MONGODB_URI: ${DOCFLOW_MONGODB_URI}
+      DOCFLOW_MONGODB_DATABASE: ${DOCFLOW_MONGODB_DATABASE:-docflow}
+      DOCFLOW_S3_ENDPOINT_URL: ${DOCFLOW_S3_ENDPOINT_URL}
+      DOCFLOW_S3_ACCESS_KEY_ID: ${DOCFLOW_S3_ACCESS_KEY_ID}
+      DOCFLOW_S3_SECRET_ACCESS_KEY: ${DOCFLOW_S3_SECRET_ACCESS_KEY}
+      DOCFLOW_S3_REGION: ${DOCFLOW_S3_REGION:-us-east-1}
+      DOCFLOW_DOCUMENT_BUCKET: ${DOCFLOW_DOCUMENT_BUCKET:-docflow-documents}
+      DOCFLOW_OCR_PROVIDER: ${DOCFLOW_OCR_PROVIDER:-google_vision}
+      DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON: ${DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON:-}
+      DOCFLOW_TESSERACT_COMMAND: tesseract
+      DOCFLOW_REDIS_URL: ${DOCFLOW_REDIS_URL:-redis://redis:6379/0}
+      DOCFLOW_USE_CELERY_WORKER: "true"
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+      - minio
+      - redis
+
+  worker:
+    build:
+      context: ./apps/api
+    restart: unless-stopped
+    command: ["celery", "-A", "app.worker:celery_app", "worker", "--loglevel=info"]
+    environment:
+      DOCFLOW_MONGODB_URI: ${DOCFLOW_MONGODB_URI}
+      DOCFLOW_MONGODB_DATABASE: ${DOCFLOW_MONGODB_DATABASE:-docflow}
+      DOCFLOW_S3_ENDPOINT_URL: ${DOCFLOW_S3_ENDPOINT_URL}
+      DOCFLOW_S3_ACCESS_KEY_ID: ${DOCFLOW_S3_ACCESS_KEY_ID}
+      DOCFLOW_S3_SECRET_ACCESS_KEY: ${DOCFLOW_S3_SECRET_ACCESS_KEY}
+      DOCFLOW_S3_REGION: ${DOCFLOW_S3_REGION:-us-east-1}
+      DOCFLOW_DOCUMENT_BUCKET: ${DOCFLOW_DOCUMENT_BUCKET:-docflow-documents}
+      DOCFLOW_OCR_PROVIDER: ${DOCFLOW_OCR_PROVIDER:-google_vision}
+      DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON: ${DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON:-}
+      DOCFLOW_TESSERACT_COMMAND: tesseract
+      DOCFLOW_REDIS_URL: ${DOCFLOW_REDIS_URL:-redis://redis:6379/0}
+      DOCFLOW_USE_CELERY_WORKER: "true"
+    depends_on:
+      - mongodb
+      - minio
+      - redis
+
+  web:
+    build:
+      context: ./apps/web
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - docflow-web-node-modules:/app/node_modules
+
 volumes:
   docflow-mongodb:
   docflow-minio:
   docflow-redis:
+  docflow-web-node-modules:

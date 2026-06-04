@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 ROOT_DIR = Path(__file__).resolve().parents[3]
 DATA_DIR = ROOT_DIR / "data"
 
-# Load environment variables from .env in project root
-load_dotenv(Path(__file__).resolve().parents[4] / ".env")
+# Load environment variables from .env in the project root when present.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -34,6 +34,8 @@ class AppSettings:
     s3_access_key_id: str | None
     s3_secret_access_key: str | None
     s3_region: str
+    ocr_provider: str
+    google_application_credentials_json: str | None
     tesseract_command: str
     ollama_base_url: str
     ollama_model: str
@@ -99,6 +101,10 @@ def load_settings() -> AppSettings:
         s3_access_key_id=s3_access_key_id,
         s3_secret_access_key=s3_secret_access_key,
         s3_region=os.getenv("DOCFLOW_S3_REGION", "us-east-1"),
+        ocr_provider=os.getenv("DOCFLOW_OCR_PROVIDER", "tesseract"),
+        google_application_credentials_json=os.getenv(
+            "DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON"
+        ),
         tesseract_command=os.getenv("DOCFLOW_TESSERACT_COMMAND", "tesseract"),
         ollama_base_url=os.getenv("DOCFLOW_OLLAMA_BASE_URL", "http://localhost:11434"),
         ollama_model=os.getenv("DOCFLOW_OLLAMA_MODEL", "llama3.1:8b"),

@@ -20,6 +20,7 @@ export function useWorkflowMutations({
   setReviewActionState,
   setSaveState,
   setToastMessage,
+  setLastUploadedRun,
   setUploadState,
   workflowDraft,
 }: WorkflowMutationOptions) {
@@ -43,14 +44,14 @@ export function useWorkflowMutations({
 
   const uploadDocumentMutation = useMutation({
     mutationFn: (formData: FormData) => uploadDocument(formData),
-    onSuccess: (_result, variables) => {
-      const bundleTitle = variables.get("bundle_title") as string | null;
-      const file = (variables.get("file") || variables.get("files")) as File | null;
-      const displayName = bundleTitle ? `bundle "${bundleTitle}"` : file?.name ? `"${file.name}"` : "document";
+    onSuccess: (result, variables) => {
+      const file = variables.get("file") as File | null;
+      const displayName = file?.name ? `"${file.name}"` : "document";
+      setLastUploadedRun(result.document_run);
       invalidateDocumentData(queryClient);
       setUploadState({
         status: "saved",
-        message: `Successfully uploaded ${displayName}. It will be processed shortly.`,
+        message: `Successfully uploaded ${displayName}. Processing has started; stay here for status updates.`,
       });
       setToastMessage({ message: `Document ${displayName} uploaded successfully!`, type: "success" });
     },

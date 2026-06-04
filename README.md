@@ -38,6 +38,8 @@ export DOCFLOW_S3_ACCESS_KEY_ID=minioadmin
 export DOCFLOW_S3_SECRET_ACCESS_KEY=minioadmin
 export DOCFLOW_DOCUMENT_BUCKET=docflow-documents
 
+export DOCFLOW_OCR_PROVIDER=google_vision
+export DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON='{"type":"service_account", "...":"..."}'
 export DOCFLOW_TESSERACT_COMMAND=tesseract
 export DOCFLOW_OLLAMA_BASE_URL=http://localhost:11434
 export DOCFLOW_OLLAMA_MODEL=llama3.1:8b
@@ -50,8 +52,13 @@ runtime fallback.
 OCR and extraction use a provider boundary:
 
 - text uploads are processed directly
-- PDFs and images use Tesseract with OpenCV preprocessing when system
-  dependencies are installed
+- PDFs and images can use Google Vision OCR by setting
+  `DOCFLOW_OCR_PROVIDER=google_vision`
+- Google Vision credentials can be supplied with
+  `DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON` or the standard
+  `GOOGLE_APPLICATION_CREDENTIALS` file path
+- Tesseract remains installed as the local/dev fallback when system
+  dependencies are available
 - extracted OCR text is sent to Ollama for structured field extraction
 - if Ollama is unavailable, the API falls back to the rule-based extractor and
   records a review issue
@@ -87,6 +94,50 @@ The web app expects the API at `http://localhost:8000`. Override with:
 ```bash
 VITE_API_URL=http://localhost:8000 npm run dev
 ```
+
+## Run Everything With Docker
+
+This is the simplest way to run the whole stack without keeping multiple local
+processes open:
+
+```bash
+docker compose up --build
+```
+
+That single command starts:
+
+- MongoDB on `localhost:27017`
+- MinIO on `localhost:9000` and the console on `localhost:9001`
+- Redis on `localhost:6379`
+- API on `localhost:8000`
+- Celery worker
+- Web app on `localhost:5173`
+
+Keep that terminal open to watch the combined logs for every service.
+
+Stop everything with:
+
+```bash
+docker compose down
+```
+
+If the stack is already running and you only want the logs:
+
+```bash
+docker compose logs -f
+```
+
+## Cloud Deployment Notes
+
+When you deploy the API to a hosted environment, make sure these pieces travel together:
+
+- the API service
+- a Celery worker service
+- Redis as the broker
+- Google Vision credentials when `DOCFLOW_OCR_PROVIDER=google_vision`
+- Tesseract and Poppler installed in the runtime image as a fallback
+
+The OCR pipeline now uses the queue for real instead of silently falling back to direct execution. If Redis or the worker is missing, uploads should fail loudly rather than pretending to be queued.
 
 ## Document Workflow
 

@@ -14,13 +14,17 @@ export const builderLabels = {
       }
     },
     stages: {
+      definition: {
+        kicker: "Workflow definition",
+        title: "Define the document and extraction fields in one form."
+      },
       document: {
         kicker: "Document setup",
         title: "Define what this workflow accepts.",
         fields: {
           name: "Workflow name",
           type: "Document type",
-          typeOptions: ["Contract", "Invoice", "Vendor form"],
+          typeOptions: ["CV", "Contract", "Invoice", "Vendor form", "Custom document"],
           source: "Intake source",
           sourceOptions: ["Direct upload", "Shared inbox", "API upload"],
           summary: "Workflow summary"

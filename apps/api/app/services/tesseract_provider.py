@@ -1,9 +1,45 @@
 import subprocess
 import tempfile
+import shutil
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
 from app.services.ocr_models import OcrPage, OcrResult
+
+
+def probe_ocr_dependencies(command: str = "tesseract") -> list[str]:
+    warnings: list[str] = []
+    resolved_command = shutil.which(command) if command else None
+    if resolved_command is None and command != "tesseract":
+        resolved_command = shutil.which("tesseract")
+    binary_to_check = resolved_command or command
+
+    for binary, message in (
+        (
+            binary_to_check,
+            "Tesseract OCR binary is not available on this server.",
+        ),
+        (
+            "pdftoppm",
+            "Poppler utilities are not available on this server, so PDF OCR may fail.",
+        ),
+    ):
+        try:
+            subprocess.run(
+                [binary, "-h" if binary == "pdftoppm" else "--version"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except FileNotFoundError:
+            warnings.append(message)
+        except subprocess.CalledProcessError:
+            # Some binaries exit non-zero on help/version flags; that still means the
+            # executable exists, so we do not warn in that case.
+            pass
+
+    return warnings
 
 
 def is_pdf(filename: str, content_type: str) -> bool:
@@ -20,7 +56,7 @@ class TesseractOCRProvider:
     name = "tesseract"
 
     def __init__(self, command: str = "tesseract"):
-        self.command = command
+        self.command = self._resolve_command(command)
 
     def extract_text(
         self, *, body: bytes, filename: str, content_type: str
@@ -49,6 +85,10 @@ class TesseractOCRProvider:
         )
 
     def _extract_pdf(self, body: bytes) -> OcrResult:
+        text_result = self._extract_pdf_text(body)
+        if text_result is not None and text_result.text:
+            return text_result
+
         try:
             from pdf2image import convert_from_bytes
         except ImportError:
@@ -56,7 +96,7 @@ class TesseractOCRProvider:
                 "pdf2image is required to split PDFs into page images."
             )
         try:
-            images = convert_from_bytes(body)
+            images = convert_from_bytes(body, dpi=150)
         except Exception as exc:
             return OcrResult(
                 text="",
@@ -98,6 +138,11 @@ class TesseractOCRProvider:
                 check=True,
                 capture_output=True,
                 text=True,
+                timeout=120,
+            )
+        except subprocess.TimeoutExpired:
+            return self._dependency_issue(
+                "Tesseract timed out while processing this page. The document has been routed to review."
             )
         except FileNotFoundError:
             return self._dependency_issue(
@@ -128,6 +173,7 @@ class TesseractOCRProvider:
             check=True,
             capture_output=True,
             text=True,
+            timeout=120,
         )
         return self._page_result(completed.stdout.strip(), page_number)
 
@@ -165,3 +211,44 @@ class TesseractOCRProvider:
         return OcrResult(
             text="", issues=[{"field": "OCR", "message": message}], provider=self.name
         )
+
+    def _extract_pdf_text(self, body: bytes) -> OcrResult | None:
+        try:
+            from pypdf import PdfReader
+        except ImportError:
+            return None
+
+        try:
+            reader = PdfReader(BytesIO(body))
+        except Exception:
+            return None
+
+        pages: list[OcrPage] = []
+        text_parts: list[str] = []
+        for index, page in enumerate(reader.pages, start=1):
+            try:
+                page_text = (page.extract_text() or "").strip()
+            except Exception:
+                page_text = ""
+            pages.append(OcrPage(page_number=index, text=page_text))
+            if page_text:
+                text_parts.append(page_text)
+
+        text = "\n\n".join(text_parts).strip()
+        if not text:
+            return None
+
+        return OcrResult(text=text, pages=pages, issues=[], provider="pdf_text")
+
+    @staticmethod
+    def _resolve_command(command: str) -> str:
+        resolved = shutil.which(command)
+        if resolved:
+            return resolved
+
+        if command != "tesseract":
+            fallback = shutil.which("tesseract")
+            if fallback:
+                return fallback
+
+        return command

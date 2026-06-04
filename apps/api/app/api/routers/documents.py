@@ -75,31 +75,20 @@ async def upload_document(
     workflow_id: str = Form(...),
     document_type: str = Form(...),
     file: UploadFile | None = File(None),
-    files: list[UploadFile] | None = File(None),
-    bundle_title: str | None = Form(None),
     store: DocumentStore = Depends(get_document_store),
     resource_stores: dict[str, ResourceStore] = Depends(get_resource_stores),
     workflow_store: WorkflowDefinitionStore = Depends(get_workflow_store),
     settings: Any = Depends(get_settings),
 ) -> dict[str, Any]:
-    upload_files = []
-    if files:
-        upload_files.extend(files)
-    if file:
-        upload_files.append(file)
-
-    if not upload_files:
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=400, detail="No files uploaded.")
+    if not file:
+        raise HTTPException(status_code=400, detail="No file uploaded.")
 
     return await create_uploaded_document(
         document_type=document_type,
-        files=upload_files,
+        file=file,
         resource_stores=resource_stores,
         settings=settings,
         store=store,
         workflow_id=workflow_id,
         workflow_store=workflow_store,
-        bundle_title=bundle_title,
     )

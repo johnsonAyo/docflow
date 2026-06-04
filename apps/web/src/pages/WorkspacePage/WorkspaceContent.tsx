@@ -39,14 +39,17 @@ export function WorkspaceContent({ workspace, selectedRunId, setSelectedRunId }:
 
   if (navigation.activeSection === "Workflows" && navigation.workflowView === "overview") {
     return (
-        <WorkflowOverview
-          onCreateWorkflow={actions.createDraftWorkflow}
-          onDeleteWorkflow={actions.deleteWorkflow}
-          onOpenWorkflow={actions.openWorkflow}
+      <WorkflowOverview
+        onCreateWorkflow={actions.createDraftWorkflow}
+        onDeleteWorkflow={actions.deleteWorkflow}
+        onOpenWorkflow={actions.openWorkflow}
         onRunWorkflow={(id) => {
           actions.setRunWorkflowId(id);
           actions.changeSection("Process documents");
         }}
+        documentRuns={workspace.data.documentRuns}
+        records={workspace.data.records}
+        reviewStates={workspace.data.reviewStates}
         savedWorkflows={overview.savedWorkflows}
         isDeletingWorkflow={sections.isDeletingWorkflow}
       />
@@ -55,20 +58,20 @@ export function WorkspaceContent({ workspace, selectedRunId, setSelectedRunId }:
 
   if (navigation.isWorkflowBuilder) {
     return (
-        <WorkflowBuilder
-          activeStage={builder.activeStage}
-          fields={builder.fields}
-          workflowDraft={builder.workflowDraft}
-          configPreview={builder.configPreview}
-          validationErrors={builder.validationErrors}
-          saveState={builder.saveState}
-          onAddField={workspace.modals.addField.open}
-          onChangeStage={actions.changeStage}
-          onDeleteField={actions.deleteField}
-          onWorkflowDraftChange={actions.updateWorkflowDraft}
-          onPublishWorkflow={actions.publishWorkflow}
-          isPublishing={builder.isSaving}
-        />
+      <WorkflowBuilder
+        activeStage={builder.activeStage}
+        fields={builder.fields}
+        workflowDraft={builder.workflowDraft}
+        configPreview={builder.configPreview}
+        validationErrors={builder.validationErrors}
+        saveState={builder.saveState}
+        onAddField={workspace.modals.addField.open}
+        onChangeStage={actions.changeStage}
+        onDeleteField={actions.deleteField}
+        onWorkflowDraftChange={actions.updateWorkflowDraft}
+        onPublishWorkflow={actions.publishWorkflow}
+        isPublishing={builder.isSaving}
+      />
     );
   }
 
@@ -121,6 +124,8 @@ export function WorkspaceContent({ workspace, selectedRunId, setSelectedRunId }:
         title={navigation.activeSection}
         savedWorkflows={overview.savedWorkflows}
         documentRuns={workspace.data.documentRuns}
+        reviewStates={workspace.data.reviewStates}
+        lastUploadedRun={sections.lastUploadedRun}
         uploadState={sections.uploadState}
         deliveryState={sections.deliveryState}
         reviewActionState={sections.reviewActionState}
@@ -136,9 +141,7 @@ export function WorkspaceContent({ workspace, selectedRunId, setSelectedRunId }:
         onOpenReviewItem={actions.openReviewItem}
         onOpenRun={handleOpenRun}
         onDeleteItem={handleDeleteItem}
-        queue={workspace.queue}
       />
     </ErrorBoundary>
   );
 }
-

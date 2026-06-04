@@ -2,11 +2,11 @@ import { type FormEvent } from "react";
 import {
   AppSection,
   DocumentRun,
+  ReviewState,
   WorkflowDefinition,
   WorkflowSaveState,
   WorkspaceItem,
 } from "@/types";
-import { type UploadJob } from "@/hooks/useUploadQueue";
 
 export type WorkspaceSectionTitle = Exclude<AppSection, "Workflows">;
 
@@ -14,16 +14,12 @@ export type WorkspaceSectionViewProps = {
   title: WorkspaceSectionTitle;
   savedWorkflows: WorkflowDefinition[];
   documentRuns: DocumentRun[];
+  reviewStates: ReviewState[];
+  lastUploadedRun: DocumentRun | null;
   uploadState: WorkflowSaveState;
   deliveryState: WorkflowSaveState;
   reviewActionState: WorkflowSaveState;
   items: WorkspaceItem[];
-  queue: {
-    jobs: UploadJob[];
-    queueFiles: (files: File[], workflowId: string, documentType: string) => void;
-    removeJob: (id: string) => void;
-    clearCompleted: () => void;
-  };
   isUploadingDocument: boolean;
   isTestingWebhook: boolean;
   isApprovingReview: boolean;

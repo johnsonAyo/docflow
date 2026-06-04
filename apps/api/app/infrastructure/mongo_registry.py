@@ -14,13 +14,14 @@ class MongoStoreRegistry:
                 "pymongo is required for DocFlow metadata storage"
             ) from exc
 
-        import certifi
+        client_kwargs = {"serverSelectionTimeoutMS": 2000}
 
-        self.client = MongoClient(
-            uri,
-            serverSelectionTimeoutMS=2000,
-            tlsCAFile=certifi.where(),
-        )
+        if uri.startswith("mongodb+srv://"):
+            import certifi
+
+            client_kwargs["tlsCAFile"] = certifi.where()
+
+        self.client = MongoClient(uri, **client_kwargs)
         self.client.admin.command("ping")
         self.database = self.client[database_name]
 

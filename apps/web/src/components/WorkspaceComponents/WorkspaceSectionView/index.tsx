@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { DocumentRun } from "@/types";
+import { CircleAlert, CircleCheckBig, Eye, Loader2 } from "lucide-react";
+import { isRecentlyActiveRun } from "@/lib/documentRunStatus";
+import { DocumentRun, ReviewState, WorkflowSaveState } from "@/types";
 import { workspaceSectionContent } from "./labels";
 import { DocumentUploadPanel } from "@/components/WorkspaceComponents/DocumentUploadPanel";
 import { WorkspaceSectionActions } from "@/components/WorkspaceComponents/WorkspaceSectionActions";
@@ -10,9 +11,10 @@ import { WorkspaceSectionViewProps } from "@/components/WorkspaceComponents/Work
 export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
   const content = workspaceSectionContent[props.title];
   const [hasSelectedFiles, setHasSelectedFiles] = useState(false);
+  const isBusy = props.isUploadingDocument;
 
   return (
-    <section className="workspace-section-page" data-section={props.title} aria-labelledby="workspace-section-title">
+    <section className={`workspace-section-page${isBusy ? " is-busy" : ""}`} data-section={props.title} aria-labelledby="workspace-section-title">
       <div className="workspace-section-header">
         <div>
           <p className="app-kicker">{content.kicker}</p>
@@ -28,6 +30,19 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
       </div>
       {props.title === "Review queue" && props.reviewActionState.message ? <StateMessage state={props.reviewActionState} /> : null}
       {props.title === "Integrations" && props.deliveryState.message ? <StateMessage state={props.deliveryState} /> : null}
+      {props.title === "Process documents" && isBusy ? (
+        <UploadBusyBanner message={props.uploadState.message || "Upload in progress. We’re sending the file, then OCR and extraction will continue automatically."} />
+      ) : null}
+      {props.title === "Process documents" ? (
+        <UploadRunFeedback
+          documentRuns={props.documentRuns}
+          isUploadingDocument={props.isUploadingDocument}
+          lastUploadedRun={props.lastUploadedRun}
+          reviewStates={props.reviewStates}
+          uploadState={props.uploadState}
+          onOpenRun={props.onOpenRun}
+        />
+      ) : null}
       
       {(props.title === "Review queue" || props.title === "Process documents") && (
         <ActiveProcessingQueue
@@ -39,12 +54,13 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
       <div className="workspace-item-list">
         {props.title === "Process documents" ? (
           <DocumentUploadPanel
-            queue={props.queue}
             runWorkflowId={props.runWorkflowId}
             savedWorkflows={props.savedWorkflows}
             setRunWorkflowId={props.setRunWorkflowId}
             onUploadDocument={props.onUploadDocument}
             onSelectedFilesChange={setHasSelectedFiles}
+            isUploadingDocument={props.isUploadingDocument}
+            uploadState={props.uploadState}
           />
         ) : null}
         {props.title === "Integrations" ? (
@@ -88,19 +104,169 @@ export function WorkspaceSectionView(props: WorkspaceSectionViewProps) {
   );
 }
 
+type UploadRunFeedbackProps = {
+  documentRuns: DocumentRun[];
+  isUploadingDocument: boolean;
+  lastUploadedRun: DocumentRun | null;
+  reviewStates: ReviewState[];
+  uploadState: WorkflowSaveState;
+  onOpenRun?: (runId: string) => void;
+};
+
+function UploadRunFeedback({
+  documentRuns,
+  isUploadingDocument,
+  lastUploadedRun,
+  reviewStates,
+  uploadState,
+  onOpenRun,
+}: UploadRunFeedbackProps) {
+  const liveRun = lastUploadedRun
+    ? documentRuns.find((run) => run.id === lastUploadedRun.id) || lastUploadedRun
+    : null;
+
+  if (!isUploadingDocument && !liveRun && uploadState.status !== "saving" && uploadState.status !== "saved" && uploadState.status !== "error") {
+    return null;
+  }
+
+  const openReview = liveRun
+    ? reviewStates.find((review) => review.document_run_id === liveRun.id && review.status === "open") ?? null
+    : null;
+  const feedback = uploadFeedbackCopy({
+    isUploadingDocument,
+    run: liveRun,
+    review: openReview,
+    uploadState,
+  });
+
+  return (
+    <div className={`upload-run-feedback tone-${feedback.tone}`} role="status" aria-live="polite">
+      <div className="upload-run-feedback-icon">
+        {feedback.tone === "green" ? (
+          <CircleCheckBig size={18} aria-hidden="true" />
+        ) : feedback.tone === "yellow" || feedback.tone === "red" ? (
+          <CircleAlert size={18} aria-hidden="true" />
+        ) : (
+          <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+        )}
+      </div>
+      <div>
+        <span>{feedback.kicker}</span>
+        <strong>{feedback.title}</strong>
+        <p>{feedback.message}</p>
+      </div>
+      {liveRun && feedback.actionLabel ? (
+        <button className="app-secondary-action compact" type="button" onClick={() => onOpenRun?.(liveRun.id)}>
+          <Eye size={15} aria-hidden="true" />
+          {feedback.actionLabel}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function uploadFeedbackCopy({
+  isUploadingDocument,
+  run,
+  review,
+  uploadState,
+}: {
+  isUploadingDocument: boolean;
+  run: DocumentRun | null;
+  review: ReviewState | null;
+  uploadState: WorkflowSaveState;
+}) {
+  if (uploadState.status === "error") {
+    return {
+      actionLabel: run ? "Open run" : "",
+      kicker: "Upload failed",
+      message: uploadState.message || "The document could not be uploaded. Please try again.",
+      title: "Something blocked the upload.",
+      tone: "red",
+    };
+  }
+
+  if (isUploadingDocument || uploadState.status === "saving") {
+    return {
+      actionLabel: "",
+      kicker: "Uploading",
+      message: uploadState.message || "We are sending the file and creating a processing run.",
+      title: "Your document is being uploaded.",
+      tone: "blue",
+    };
+  }
+
+  if (!run) {
+    return {
+      actionLabel: "",
+      kicker: "Queued",
+      message: uploadState.message || "The upload completed. Waiting for the run status to refresh.",
+      title: "Processing run is being prepared.",
+      tone: "blue",
+    };
+  }
+
+  const processing = run.metadata?.processing as { message?: string; stage?: string } | undefined;
+  if (run.status === "needs_review") {
+    return {
+      actionLabel: review ? "Open review" : "Open run",
+      kicker: "Review ready",
+      message: review
+        ? `${review.issues.length} issue${review.issues.length === 1 ? "" : "s"} need your confirmation before this record is approved.`
+        : "The run needs review. Open it to inspect the extracted data and issues.",
+      title: `${run.document_name} is ready for review.`,
+      tone: "yellow",
+    };
+  }
+
+  if (run.status === "approved") {
+    return {
+      actionLabel: "View result",
+      kicker: "Completed",
+      message: "The document has been approved and the extracted record is available.",
+      title: `${run.document_name} has finished processing.`,
+      tone: "green",
+    };
+  }
+
+  if (run.status === "failed") {
+    return {
+      actionLabel: "Open run",
+      kicker: "Failed",
+      message: run.error || "Processing failed. Open the run to inspect or retry.",
+      title: `${run.document_name} could not be processed.`,
+      tone: "red",
+    };
+  }
+
+  return {
+    actionLabel: "Open run",
+    kicker: run.status === "uploaded" ? "Queued" : "Processing",
+    message: processing?.message || "OCR and field extraction are running in the background.",
+    title: `${run.document_name} is moving through the queue.`,
+    tone: "blue",
+  };
+}
+
+function UploadBusyBanner({ message }: { message: string }) {
+  return (
+    <div className="upload-busy-banner" role="status" aria-live="polite">
+      <Loader2 size={16} className="animate-spin" />
+      <div>
+        <strong>Upload in progress</strong>
+        <p>{message}</p>
+      </div>
+    </div>
+  );
+}
+
 type ActiveProcessingQueueProps = {
   documentRuns: DocumentRun[];
   savedWorkflows: any[];
 };
 
-const STUCK_JOB_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-
 function ActiveProcessingQueue({ documentRuns, savedWorkflows }: ActiveProcessingQueueProps) {
-  const activeRuns = documentRuns.filter((run) => {
-    if (run.status !== "uploaded" && run.status !== "processing") return false;
-    const ageMs = Date.now() - new Date(run.created_at).getTime();
-    return ageMs < STUCK_JOB_TIMEOUT_MS;
-  });
+  const activeRuns = documentRuns.filter(isRecentlyActiveRun);
 
   if (activeRuns.length === 0) return null;
 

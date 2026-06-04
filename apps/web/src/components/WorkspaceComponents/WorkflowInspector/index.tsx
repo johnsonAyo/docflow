@@ -26,6 +26,15 @@ export function WorkflowInspector({
       </div>
       {validationErrors.length > 0 ? <ValidationCard errors={validationErrors} /> : null}
 
+      <div className="inspector-card workflow-guide-card">
+        <div className="inspector-heading"><span>How to define it</span><b>Guide</b></div>
+        <ol>
+          <li><strong>Document:</strong> describe the file type and the record you expect back.</li>
+          <li><strong>Fields:</strong> list the exact values users need extracted from each upload.</li>
+          <li><strong>Publish:</strong> save the schema, then run documents through the queue.</li>
+        </ol>
+      </div>
+
       <div className="inspector-card config-card">
         <div className="inspector-heading"><span>Advanced config</span><b>JSON</b></div>
         <pre>{configPreview}</pre>

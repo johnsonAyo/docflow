@@ -82,7 +82,7 @@ export function DocumentRunWorkspaceView({
     fieldsByFile[fname] = [];
   });
 
-  // Distribute fields to files
+  // Group fields by source filename for existing artifact metadata.
   editedFields.forEach((field, index) => {
     const fname = field.filename || filenames[0] || "document";
     if (!fieldsByFile[fname]) {
@@ -130,7 +130,7 @@ export function DocumentRunWorkspaceView({
       queryClient.invalidateQueries({ queryKey: ["records"] });
       queryClient.invalidateQueries({ queryKey: ["reviewStates"] });
 
-      setToastMessage({ message: "Document bundle successfully approved and published!", type: "success" });
+      setToastMessage({ message: "Document successfully approved and published!", type: "success" });
       onClose();
     } catch (err: any) {
       setToastMessage({ message: err.message || "Failed to approve run.", type: "error" });

@@ -1,6 +1,5 @@
-from threading import Thread
-
 from celery import Celery
+from celery.signals import worker_ready
 
 from app.api.routers.document_uploads import upload_response
 from app.core.settings import load_settings
@@ -10,9 +9,19 @@ from app.infrastructure.repositories import (
     create_workflow_store,
 )
 from app.services.document_processing import process_uploaded_document
+from app.main import probe_configured_ocr
 
 settings = load_settings()
 celery_app = Celery("docflow_worker", broker=settings.redis_url)
+
+
+@worker_ready.connect
+def log_worker_dependency_status(**_: object) -> None:
+    warnings = probe_configured_ocr(settings)
+    if warnings:
+        print(f"OCR dependency warnings: {'; '.join(warnings)}", flush=True)
+        return
+    print("OCR dependencies ready", flush=True)
 
 
 def process_document_job(
@@ -113,27 +122,11 @@ def enqueue_document_task(
     content_type: str,
     artifact: dict,
 ) -> None:
-    try:
-        process_document_task.delay(
-            document_run_id=document_run_id,
-            workflow_id=workflow_id,
-            document_type=document_type,
-            filename=filename,
-            content_type=content_type,
-            artifact=artifact,
-        )
-    except Exception:
-        # If the broker or worker is unavailable, fall back to a daemon thread so
-        # the request still returns immediately instead of blocking the UI.
-        Thread(
-            target=process_document_job,
-            kwargs={
-                "document_run_id": document_run_id,
-                "workflow_id": workflow_id,
-                "document_type": document_type,
-                "filename": filename,
-                "content_type": content_type,
-                "artifact": artifact,
-            },
-            daemon=True,
-        ).start()
+    process_document_task.delay(
+        document_run_id=document_run_id,
+        workflow_id=workflow_id,
+        document_type=document_type,
+        filename=filename,
+        content_type=content_type,
+        artifact=artifact,
+    )

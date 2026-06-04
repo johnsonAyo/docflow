@@ -1,8 +1,17 @@
 export type HealthResponse = {
   ok: boolean;
   service: string;
-  database: string;
-  database_exists: boolean;
+  metadata_store: string;
+  document_store: string;
+  mongodb_database: string;
+  document_bucket: string;
+  resource_collections: string[];
+  startup_warnings: string[];
+  ocr_dependencies: {
+    provider?: string;
+    status: "ok" | "degraded";
+    warnings: string[];
+  };
 };
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
