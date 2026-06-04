@@ -4,11 +4,26 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT_DIR = Path(__file__).resolve().parents[3]
+
+def find_project_root() -> Path:
+    current = Path(__file__).resolve().parent
+    markers = ("docker-compose.yml", "pyproject.toml", ".git")
+
+    for parent in [current, *current.parents]:
+        if any((parent / marker).exists() for marker in markers):
+            return parent
+
+    return current
+
+
+ROOT_DIR = find_project_root()
 DATA_DIR = ROOT_DIR / "data"
 
 # Load environment variables from .env in the project root when present.
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+if (ROOT_DIR / ".env").exists():
+    load_dotenv(ROOT_DIR / ".env")
+else:
+    load_dotenv()
 
 
 @dataclass(frozen=True)
