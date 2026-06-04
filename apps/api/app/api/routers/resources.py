@@ -28,6 +28,7 @@ from app.domain.models import (
 )
 from app.infrastructure.document_store import DocumentStore
 from app.infrastructure.repositories import ResourceStore, WorkflowDefinitionStore
+from app.services.document_processing import process_uploaded_document
 
 router = APIRouter(tags=["metadata"])
 
@@ -122,7 +123,7 @@ async def retry_document_run(
     metadata["attempts"] = attempts
     metadata["processing"] = {
         "stage": "uploaded",
-        "message": f"Retry attempt {attempts} queued.",
+        "message": f"Retry attempt {attempts} started.",
     }
 
     run_store.update_item(
@@ -134,51 +135,30 @@ async def retry_document_run(
         },
     )
 
-    use_celery_worker = getattr(settings, "use_celery_worker", False) is True
-    if not use_celery_worker:
-        from app.services.document_processing import process_uploaded_document
+    try:
+        processing = process_uploaded_document(
+            body=body,
+            filename=filename,
+            content_type=content_type,
+            workflow_id=workflow_id,
+            document_type=run["document_type"],
+            document_run_id=run_id,
+            workflow_config=workflow["config"],
+            settings=settings,
+            document_store=document_store,
+            records=stores["records"],
+            review_states=stores["review_states"],
+            run_document_run=run,
+        )
+        from app.api.routers.document_uploads import upload_response
 
-        try:
-            processing = process_uploaded_document(
-                body=body,
-                filename=filename,
-                content_type=content_type,
-                workflow_id=workflow_id,
-                document_type=run["document_type"],
-                document_run_id=run_id,
-                workflow_config=workflow["config"],
-                settings=settings,
-                document_store=document_store,
-                records=stores["records"],
-                review_states=stores["review_states"],
-                run_document_run=run,
-            )
-            from app.api.routers.document_uploads import upload_response
-
-            return upload_response(run, run_store, first_art, processing)
-        except Exception as e:
-            run_store.update_item(
-                run_id,
-                {
-                    "status": "failed",
-                    "error": str(e),
-                },
-            )
-            raise HTTPException(status_code=500, detail=str(e))
-
-    from app.worker import enqueue_document_task
-
-    enqueue_document_task(
-        document_run_id=run_id,
-        workflow_id=workflow_id,
-        document_type=run["document_type"],
-        filename=filename,
-        content_type=content_type,
-        artifact=first_art,
-    )
-    return {
-        "document_run": run_store.get_item(run_id),
-        "artifact": first_art,
-        "record": None,
-        "review_state": None,
-    }
+        return upload_response(run, run_store, first_art, processing)
+    except Exception as e:
+        run_store.update_item(
+            run_id,
+            {
+                "status": "failed",
+                "error": str(e),
+            },
+        )
+        raise HTTPException(status_code=500, detail=str(e))

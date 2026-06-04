@@ -9,7 +9,6 @@ import boto3
 import certifi
 from botocore.exceptions import ClientError
 from pymongo import MongoClient
-from redis import Redis
 
 
 def wait(label, check, timeout_seconds=120):
@@ -29,7 +28,6 @@ def wait(label, check, timeout_seconds=120):
 
 
 mongodb_uri = os.environ["DOCFLOW_MONGODB_URI"]
-redis_url = os.environ.get("DOCFLOW_REDIS_URL", "redis://redis:6379/0")
 s3_endpoint = os.environ["DOCFLOW_S3_ENDPOINT_URL"]
 s3_access_key_id = os.environ["DOCFLOW_S3_ACCESS_KEY_ID"]
 s3_secret_access_key = os.environ["DOCFLOW_S3_SECRET_ACCESS_KEY"]
@@ -42,10 +40,6 @@ def check_mongodb():
     if mongodb_uri.startswith("mongodb+srv://"):
         kwargs["tlsCAFile"] = certifi.where()
     MongoClient(mongodb_uri, **kwargs).admin.command("ping")
-
-
-def check_redis():
-    Redis.from_url(redis_url).ping()
 
 
 def check_s3():
@@ -68,7 +62,6 @@ def check_s3():
 
 
 wait("mongodb", check_mongodb)
-wait("redis", check_redis)
 wait("s3", check_s3)
 PY
 

@@ -97,7 +97,6 @@ def test_retry_document_run():
         ollama_base_url="http://127.0.0.1:1",
         ollama_model="llama3.1:8b",
         ollama_timeout_seconds=0.01,
-        use_celery_worker=False,
     )
     app.state.resource_stores = {
         "document_runs": run_store,

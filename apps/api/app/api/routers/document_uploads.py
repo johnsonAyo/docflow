@@ -57,73 +57,36 @@ async def create_uploaded_document(
     )
     workflow = workflow_store.get_workflow(workflow_id)
 
-    use_celery_worker = getattr(settings, "use_celery_worker", False) is True
-
-    if not use_celery_worker:
-        try:
-            processing = process_uploaded_document(
-                body=body,
-                filename=filename,
-                content_type=content_type,
-                workflow_id=workflow_id,
-                document_type=document_type,
-                document_run_id=document_run["id"],
-                workflow_config=workflow["config"] if workflow is not None else {},
-                settings=settings,
-                document_store=store,
-                records=resource_stores["records"],
-                review_states=resource_stores["review_states"],
-                run_document_run=document_run,
-            )
-            return upload_response(
-                document_run,
-                resource_stores["document_runs"],
-                original_artifact,
-                processing,
-            )
-        except Exception as e:
-            resource_stores["document_runs"].update_item(
-                document_run["id"],
-                {
-                    "status": "failed",
-                    "error": str(e),
-                },
-            )
-            raise
-
-    from app.worker import enqueue_document_task
-
-    enqueue_document_task(
-        document_run_id=document_run["id"],
-        workflow_id=workflow_id,
-        document_type=document_type,
-        filename=filename,
-        content_type=content_type,
-        artifact=original_artifact,
-    )
-
-    updated_run = (
+    try:
+        processing = process_uploaded_document(
+            body=body,
+            filename=filename,
+            content_type=content_type,
+            workflow_id=workflow_id,
+            document_type=document_type,
+            document_run_id=document_run["id"],
+            workflow_config=workflow["config"] if workflow is not None else {},
+            settings=settings,
+            document_store=store,
+            records=resource_stores["records"],
+            review_states=resource_stores["review_states"],
+            run_document_run=document_run,
+        )
+        return upload_response(
+            document_run,
+            resource_stores["document_runs"],
+            original_artifact,
+            processing,
+        )
+    except Exception as e:
         resource_stores["document_runs"].update_item(
             document_run["id"],
             {
-                "metadata": {
-                    **document_run["metadata"],
-                    "processing": {
-                        "stage": "queued",
-                        "message": "OCR and extraction have been queued for background processing.",
-                    },
-                }
+                "status": "failed",
+                "error": str(e),
             },
         )
-        or document_run
-    )
-
-    return {
-        "document_run": updated_run,
-        "artifact": original_artifact,
-        "record": None,
-        "review_state": None,
-    }
+        raise
 
 
 def create_document_run(

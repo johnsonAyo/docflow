@@ -19,7 +19,6 @@ dependencies = [
     "pdf2image==1.17.0",
     "opencv-python-headless==4.10.0.84",
     "google-cloud-vision==3.10.2",
-    "celery[redis]==5.4.0",
     "certifi==2024.2.2",
 ]
 

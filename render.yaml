@@ -1,8 +1,4 @@
 services:
-  - type: redis
-    name: docflow-redis
-    plan: free
-
   - type: web
     name: docflow-api
     runtime: docker
@@ -17,31 +13,3 @@ services:
         value: google_vision
       - key: DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON
         sync: false
-      - key: DOCFLOW_USE_CELERY_WORKER
-        value: "true"
-      - key: DOCFLOW_REDIS_URL
-        fromService:
-          type: redis
-          name: docflow-redis
-          property: connectionString
-
-  - type: worker
-    name: docflow-worker
-    runtime: docker
-    dockerfilePath: apps/api/Dockerfile
-    dockerContext: apps/api
-    dockerCommand: celery -A app.worker:celery_app worker --loglevel=info
-    envVars:
-      - key: DOCFLOW_TESSERACT_COMMAND
-        value: tesseract
-      - key: DOCFLOW_OCR_PROVIDER
-        value: google_vision
-      - key: DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON
-        sync: false
-      - key: DOCFLOW_USE_CELERY_WORKER
-        value: "true"
-      - key: DOCFLOW_REDIS_URL
-        fromService:
-          type: redis
-          name: docflow-redis
-          property: connectionString

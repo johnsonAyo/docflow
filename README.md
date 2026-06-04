@@ -57,26 +57,19 @@ OCR and extraction use a provider boundary:
 - Google Vision credentials can be supplied with
   `DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON` or the standard
   `GOOGLE_APPLICATION_CREDENTIALS` file path
+- Docker `.env` files must keep `DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON`
+  on one line. Paste compact JSON only; the `private_key` newlines should be
+  escaped as `\n`.
 - Tesseract remains installed as the local/dev fallback when system
   dependencies are available
 - extracted OCR text is sent to Ollama for structured field extraction
 - if Ollama is unavailable, the API falls back to the rule-based extractor and
   records a review issue
 
-Local MongoDB, MinIO, and Redis can be started with:
+Local MongoDB and MinIO can be started with:
 
 ```bash
-docker compose up -d mongodb minio redis
-```
-
-MinIO console: `http://localhost:9001` with `minioadmin` / `minioadmin`.
-
-## Run the Celery Worker
-Background document processing is handled by Celery. Open a new terminal:
-```bash
-cd apps/api
-source .venv/bin/activate
-celery -A app.worker.celery_app worker --loglevel=info
+docker compose up -d mongodb minio
 ```
 
 MinIO console: `http://localhost:9001` with `minioadmin` / `minioadmin`.
@@ -108,9 +101,7 @@ That single command starts:
 
 - MongoDB on `localhost:27017`
 - MinIO on `localhost:9000` and the console on `localhost:9001`
-- Redis on `localhost:6379`
 - API on `localhost:8000`
-- Celery worker
 - Web app on `localhost:5173`
 
 Keep that terminal open to watch the combined logs for every service.
@@ -131,13 +122,11 @@ docker compose logs -f
 
 When you deploy the API to a hosted environment, make sure these pieces travel together:
 
-- the API service
-- a Celery worker service
-- Redis as the broker
+- one API service
 - Google Vision credentials when `DOCFLOW_OCR_PROVIDER=google_vision`
 - Tesseract and Poppler installed in the runtime image as a fallback
 
-The OCR pipeline now uses the queue for real instead of silently falling back to direct execution. If Redis or the worker is missing, uploads should fail loudly rather than pretending to be queued.
+For personal or low-volume use, document processing runs inside the API request instead of a separate queue. This keeps Render deployment simple: one backend service and one Vercel frontend.
 
 ## Document Workflow
 

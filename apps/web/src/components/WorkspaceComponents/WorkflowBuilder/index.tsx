@@ -37,7 +37,7 @@ export function WorkflowBuilder({
         <div className="workflow-definition-sidebar" aria-label="Workflow definition guide">
           <span>01</span>
           <strong>Define workflow</strong>
-          <p>Describe the document, choose how it enters DocFlow, then list the fields the worker must extract.</p>
+          <p>Describe the document, choose how it enters DocFlow, then list the fields DocFlow must extract.</p>
           <b>{fields.length} extraction fields</b>
         </div>
 

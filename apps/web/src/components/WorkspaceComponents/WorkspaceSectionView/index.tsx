@@ -199,7 +199,7 @@ function uploadFeedbackCopy({
   if (!run) {
     return {
       actionLabel: "",
-      kicker: "Queued",
+      kicker: "Preparing",
       message: uploadState.message || "The upload completed. Waiting for the run status to refresh.",
       title: "Processing run is being prepared.",
       tone: "blue",
@@ -241,9 +241,9 @@ function uploadFeedbackCopy({
 
   return {
     actionLabel: "Open run",
-    kicker: run.status === "uploaded" ? "Queued" : "Processing",
-    message: processing?.message || "OCR and field extraction are running in the background.",
-    title: `${run.document_name} is moving through the queue.`,
+    kicker: run.status === "uploaded" ? "Starting" : "Processing",
+    message: processing?.message || "OCR and field extraction are running now.",
+    title: `${run.document_name} is being processed.`,
     tone: "blue",
   };
 }
@@ -314,7 +314,7 @@ function ActiveJobCard({ run, savedWorkflows }: { run: DocumentRun; savedWorkflo
 
   const workflowName = savedWorkflows.find((w) => w.id === run.workflow_id)?.name || "Workflow";
   const processingMeta = run.metadata?.processing as Record<string, any> | undefined;
-  const statusMsg = processingMeta?.message || (run.status === "uploaded" ? "Waiting for OCR worker..." : "OCR and field extraction in progress...");
+  const statusMsg = processingMeta?.message || (run.status === "uploaded" ? "Preparing OCR..." : "OCR and field extraction in progress...");
 
   return (
     <div className="processing-job-card">
