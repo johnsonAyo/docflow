@@ -59,7 +59,9 @@ class GoogleVisionOCRProvider:
         try:
             from pdf2image import convert_from_bytes
         except ImportError as exc:
-            raise RuntimeError("pdf2image is required to render PDFs for Google Vision OCR.") from exc
+            raise RuntimeError(
+                "pdf2image is required to render PDFs for Google Vision OCR."
+            ) from exc
 
         images = convert_from_bytes(body, dpi=150)
         text_parts: list[str] = []
@@ -92,7 +94,16 @@ class GoogleVisionOCRProvider:
             raise RuntimeError(response.error.message)
 
         text = (response.full_text_annotation.text or "").strip()
-        issues = [] if text else [{"field": "OCR", "message": "Google Vision returned no text for this page."}]
+        issues = (
+            []
+            if text
+            else [
+                {
+                    "field": "OCR",
+                    "message": "Google Vision returned no text for this page.",
+                }
+            ]
+        )
         return OcrResult(
             text=text,
             pages=[OcrPage(page_number=page_number, text=text)],
@@ -114,12 +125,16 @@ class GoogleVisionOCRProvider:
         try:
             from google.oauth2 import service_account
         except ImportError as exc:
-            raise RuntimeError("google-auth is required for service account credentials.") from exc
+            raise RuntimeError(
+                "google-auth is required for service account credentials."
+            ) from exc
 
         try:
             info = json.loads(self.credentials_json)
         except json.JSONDecodeError as exc:
-            raise RuntimeError("DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON.") from exc
+            raise RuntimeError(
+                "DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON."
+            ) from exc
 
         return service_account.Credentials.from_service_account_info(info)
 
@@ -144,7 +159,9 @@ def probe_google_vision_dependencies(credentials_json: str | None = None) -> lis
         try:
             json.loads(credentials_json)
         except json.JSONDecodeError:
-            warnings.append("DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON.")
+            warnings.append(
+                "DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON is not valid JSON."
+            )
     else:
         import os
 
@@ -154,6 +171,8 @@ def probe_google_vision_dependencies(credentials_json: str | None = None) -> lis
                 "Google Vision OCR needs DOCFLOW_GOOGLE_APPLICATION_CREDENTIALS_JSON or GOOGLE_APPLICATION_CREDENTIALS."
             )
         elif not Path(credentials_path).exists():
-            warnings.append(f"GOOGLE_APPLICATION_CREDENTIALS file does not exist: {credentials_path}")
+            warnings.append(
+                f"GOOGLE_APPLICATION_CREDENTIALS file does not exist: {credentials_path}"
+            )
 
     return warnings

@@ -1,12 +1,12 @@
 from typing import Any
 
+from app.services.google_vision_provider import GoogleVisionOCRProvider
 from app.services.ocr_models import (
     ExtractionProvider,
     ExtractionResult,
     OCRProvider,
     OcrResult,
 )
-from app.services.google_vision_provider import GoogleVisionOCRProvider
 from app.services.ollama_provider import OllamaExtractionProvider  # noqa: F401
 from app.services.rule_based_provider import RuleBasedExtractionProvider  # noqa: F401
 from app.services.rule_extractors import extract_fields
@@ -65,7 +65,9 @@ def get_ocr_provider(settings: Any) -> OCRProvider:
     tesseract_provider = TesseractOCRProvider(settings.tesseract_command)
     if provider in {"google", "google_vision", "cloud_vision"}:
         return GoogleVisionOCRProvider(
-            credentials_json=getattr(settings, "google_application_credentials_json", None),
+            credentials_json=getattr(
+                settings, "google_application_credentials_json", None
+            ),
             fallback_provider=tesseract_provider,
         )
     return tesseract_provider
